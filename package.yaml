@@ -38,6 +38,7 @@ library:
   dependencies:
   - HUnit
   - containers
+  - process
 
 executables:
   HaskellGo-exe:

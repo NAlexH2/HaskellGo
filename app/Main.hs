@@ -1,7 +1,13 @@
+
+-- Alex Harris
+-- Final Project: HaskellGo
+-- Date Started: 2/25/2023
 module Main (main) where
 
-import Lib
-import Test.HUnit
+import qualified HaskellGo as HG
+import Test.HUnit()
 
 main :: IO ()
-main = someFunc
+main = HG.haskellGo(HG.emptyBoard HG.boardSize)
+
+-- recursivly
