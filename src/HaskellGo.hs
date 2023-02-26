@@ -2,10 +2,13 @@
 -- Final Project: HaskellGo
 -- Date Started: 2/25/2023
 
-module HaskellGo (haskellGo, emptyBoard, boardSize, playerID) where
+module HaskellGo ( haskellGo, emptyBoard, boardSize, playerID ) where
 import Text.Printf ( printf )
 import System.Process ( system )
+import System.IO ( hFlush )
 import qualified GHC.IO.Exception
+import GHC.IO.Handle.FD ( stdout )
+import Data.Char
 
 
 data Stones = Blank | Black | White | TBlack | TWhite deriving (Eq, Show)
@@ -55,29 +58,48 @@ clearScreen = system "clear"
 -- This function utilizes the data Stones above. This data type will be
 -- important later for identifying pieces on the board.
 emptyBoard :: Int -> Board
-emptyBoard n  | n < 9     = []
-              | otherwise = [(stone Blank, i) | i <- [1..n*n]]
+emptyBoard n  = 
+  do
+    _ <- clearScreen
+    if n < 9 then [] 
+    else [(stone Blank, i) | i <- [1..n*n]]
 
 
 -- Where it all starts. Recursively runs the game using a do statement.
 haskellGo :: Board -> Player -> IO ()
-haskellGo board playerID = 
+haskellGo board playerID =
   do
-    _ <- clearScreen
     printf "Type 'quit' anytime to end the game or 'pass' to skip your turn.\n"
     printf "To make your move, simply type an x and y that is on the grid. "
-    printf "Like so:\n 'HaskellGo > 9 9'\n"
+    printf "Like so:\n'x y: 9 9'\n\n"
     let playerID' = turnToggle playerID
     displayBoard board
     displayScore playerStats
-    printf "It is %s's turn: " currentPlayer
-    -- how to get user input into tuple? ask for x then y seems best but sloppy
-    let newBoard = makeMove playerID' board move'
+    printf "It is %s's turn.\n" (currentPlayer playerID')
+    putStr "x y: "
+    move <- getCoordinates
+    if not checkMove then do 
+      _ <- clearScreen
+      printf "**ERROR** - Invalid move detected"
+    -- //TODO how to get user input into tuple? ask for x then y seems best but sloppy
+    let newBoard = makeMove playerID' board move
     haskellGo newBoard playerID'
+    printf "\n\n(%d,%d)\n\n" x y
 
 makeMove :: Player -> Board -> (Int,Int) -> Board
 makeMove pID board = undefined
 
+checkMove :: Board -> (Int, Int) -> Bool
+checkMove board move = True
+
+getCoordinates :: IO (Int, Int)
+getCoordinates = 
+  do
+    hFlush stdout
+    coords <- getLine
+    let coords' = words (filter isDigit coords) -- //TODO higher order function?
+    let (x, y) = (\b -> (read (head b) :: Int, read (last b) :: Int)) coords'
+    return (x,y)
 
 
 -- displays the current board. Another do because of the fact each row itself
@@ -107,20 +129,21 @@ displayEachRow row board =
 
 
 displayScore :: [PlayerStats] -> IO ()
-displayScore stats = 
+displayScore stats =
   do
     printf "------------------------\n"
     printf "Score -- b: 0 -- w: 0\n\n"
 
 
-{-- TODO
-  - function to identify if a user has changed the state in a position on the
+{-- /*TODO
+   function to identify if a user has changed the state in a position on the
     board.
-  - Player toggler
-  - Player input
-  - Player stats
-  - functions to go north, south, east and west on the board.
-  - tbd
+  [ ] Player input
+  [ ] Player stats
+  [ ] functions to go north, south, east and west on the board.
+  [ ] tbd
+  [x] Player toggler
+  */
  --}
 
 
