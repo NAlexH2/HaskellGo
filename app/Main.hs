@@ -8,6 +8,6 @@ import qualified HaskellGo as HG
 import Test.HUnit()
 
 main :: IO ()
-main = HG.haskellGo(HG.emptyBoard HG.boardSize, HG.playerID)
+main = HG.haskellGo(HG.emptyBoard HG.boardSize) HG.playerID
 
 -- recursivly
