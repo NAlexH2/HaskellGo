@@ -2,11 +2,11 @@
 -- Final Project: HaskellGo
 -- Date Started: 2/25/2023
 
-module HaskellGo (  haskellGo, 
-                    emptyBoard, 
-                    boardSize, 
-                    playerID, 
-                    playerStats, 
+module HaskellGo (  haskellGo,
+                    emptyBoard,
+                    boardSize,
+                    playerID,
+                    playerStats,
                     GameState ) where
 import Text.Printf ( printf )
 import System.Process ( system )
@@ -23,8 +23,8 @@ data Player = PB | PW deriving (Eq, Show) -- PB = PlayerBlack, PW = PlayerWhite
 type PlayerStats = (Player, (Int, Int))
 -- First Int is score, 2nd is pass counter... This needs more tinkering
 type Position = (Char, Int)
-type Board = [Position]
-type GameState = (PlayerStats, Board)
+type Board = [[Position]]
+type GameState = ([PlayerStats], Board)
 
 -- Define the size of the board here. Future would like to make it user choice
 -- where n x n square and n >= 9
@@ -71,6 +71,14 @@ playerStats = [(PB,(0,0)), (PW,(0,0))]
 playerID :: Player
 playerID = PW
 
+scoreState :: GameState -> [PlayerStats]
+scoreState = fst
+
+boardState :: GameState -> Board
+boardState = snd
+
+
+
 
 -- Simple utility function to clear the screen. At least on Linux type systems.
 -- Helps players stay focused on the game versus every new output spamming
@@ -86,12 +94,11 @@ emptyBoard n  =
   do
     let _ = clearScreen
     if n < 9 then []
-    else [(stone Blank, i) | i <- [0..(n*n)-1]]
-
+    else replicate (n-1) [(stone Blank, i) | i <- [0..n-1]]
 
 -- Where it all starts. Recursively runs the game using a do statement.
-haskellGo :: Board -> Player -> IO ()
-haskellGo board pID =
+haskellGo :: GameState -> Player -> IO ()
+haskellGo currentGame pID =
   do
     -- //HACK - Remove these in final version
     -- print ((length board)-1)
@@ -101,23 +108,25 @@ haskellGo board pID =
     printf "To make your move, simply type an x and y that is on the grid. "
     printf "Like so:\n'x y: 9 9'\n\n"
     let pID' = turnToggle pID
-    displayBoard board
-    displayScore playerStats
+    displayState currentGame
     printf "It is player %s's turn...\n" (currentPlayer pID')
     putStr "x y: "
     move <- getCoordinates
-    if not $ checkMove board move then do
+    if not $ checkMove (boardState currentGame) move then do
       _ <- clearScreen
       -- //HACK - Remove these in final version
       -- uncurry (printf "\n\n\n(%d,%d)\n\n\n") move
       printf "\n**ERROR** - Invalid move detected. Please try again.\n"
       let pID'' = turnToggle pID'
-      haskellGo board pID''
+      haskellGo currentGame pID''
     else do
       -- //HACK - Remove these in final version
       -- uncurry (printf "\n\n\n(%d,%d)\n\n\n") move
-      let newBoard = makeBoard pID' board (0, posCalc move)
-      haskellGo newBoard pID'
+      let captured = capturedStones pID' (scoreState currentGame)
+      let newStats = updateStats pID' (scoreState currentGame)
+      let newBoard = makeBoard pID' (boardState currentGame) (0, posCalc move)
+      let newState = (newStats, newBoard)
+      haskellGo newState pID'
 
 -- Quickly get the position in the Board[Position] list being changed
 posCalc :: (Int, Int) -> Int
@@ -143,6 +152,21 @@ makeBoard pID (b:bs) (i, pos)
 checkMove :: Board -> (Int, Int) -> Bool
 checkMove board move | move == (-99,-99)  = False -- //TODO increment pass here/maybe do a bit more io
                      | otherwise          = True
+capturedStones :: Player -> Board -> Int -> [Int]
+capturedStones p b i = undefined
+
+
+-- playerStats = [(PB,(0,0)), (PW,(0,0))]
+updateStats :: Player -> [PlayerStats] -> (Int, Int) -> [PlayerStats]
+updateStats _ [] _ = []
+updateStats pID (p:ps) mv
+  | mv == (-99,-99) && pID == PB = updatePlayerPass p:ps
+  | mv == (-99,-99) && pID == PW = p:updateStats pID ps mv
+  | otherwise = p:ps
+
+updatePlayerPass :: PlayerStats -> PlayerStats
+updatePlayerPass ps = (fst ps, (fst (snd ps), snd (snd ps)+1))
+
 
 getCoordinates :: IO (Int, Int)
 getCoordinates =
@@ -161,14 +185,16 @@ getCoordinates =
         return (x,y)
 
 
--- displays the current board. Another do because of the fact each row itself
+-- displays the current state of the game. 
+-- Another do because of the fact each row itself
 -- will be a recursive display. Both have to execute once here, while
 -- while displayEachRow executes recursively
-displayBoard :: Board -> IO ()
-displayBoard board =
+displayState :: GameState -> IO ()
+displayState gameState =
   do
     displayTopRows
-    displayEachRow row board
+    displayEachRow row (boardState gameState)
+    displayScore (scoreState gameState)
       where
           row = 1
 
@@ -189,7 +215,7 @@ displayEachRow row board =
 -- get the state of each position in each row
 rowStates :: (Int,Int) -> Board -> String
 rowStates _ []          = []
-rowStates (s,e) (b:bs)  
+rowStates (s,e) (b:bs)
   | snd b < s = rowStates (s,e) bs
   | s <= e = " " ++ fst b : rowStates (s+1,e) bs
   | otherwise           =  [] -- rowStates (s+1,e) bs
@@ -212,6 +238,9 @@ displayScore stats =
 {-- /*TODO
    function to identify if a user has changed the state in a position on the
     board.
+  [ ] Modify board to be a list of lists for positons, each index is a row
+    [ ] Update display then
+    [ ] Update ??? 
   [ ] Use a GameState versus seperate vars to track the ENTIRE game
   [ ] Check if move is valid
   [ ] functions to look north, south, east and west on the board. bool returns?
