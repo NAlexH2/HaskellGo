@@ -2,7 +2,12 @@
 -- Final Project: HaskellGo
 -- Date Started: 2/25/2023
 
-module HaskellGo ( haskellGo, emptyBoard, boardSize, playerID ) where
+module HaskellGo (  haskellGo, 
+                    emptyBoard, 
+                    boardSize, 
+                    playerID, 
+                    playerStats, 
+                    GameState ) where
 import Text.Printf ( printf )
 import System.Process ( system )
 import System.Exit ( exitSuccess )
@@ -19,6 +24,7 @@ type PlayerStats = (Player, (Int, Int))
 -- First Int is score, 2nd is pass counter... This needs more tinkering
 type Position = (Char, Int)
 type Board = [Position]
+type GameState = (PlayerStats, Board)
 
 -- Define the size of the board here. Future would like to make it user choice
 -- where n x n square and n >= 9
@@ -45,6 +51,7 @@ turnToggle :: Player -> Player
 turnToggle PB = PW
 turnToggle PW = PB
 
+-- Identify the current player
 currentPlayer :: Player -> String
 currentPlayer p | p == PB = "BLACK"
                 | otherwise = "WHITE"
@@ -205,6 +212,7 @@ displayScore stats =
 {-- /*TODO
    function to identify if a user has changed the state in a position on the
     board.
+  [ ] Use a GameState versus seperate vars to track the ENTIRE game
   [ ] Check if move is valid
   [ ] functions to look north, south, east and west on the board. bool returns?
   [ ] Check and capture if liberties are gone

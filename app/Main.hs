@@ -5,6 +5,10 @@ module Main (main) where
 
 import qualified HaskellGo as HG
 import Test.HUnit()
+import qualified HaskellGo as HG
 
 main :: IO ()
-main = HG.haskellGo(HG.emptyBoard HG.boardSize) HG.playerID
+main = 
+  do
+    let newGame = (HG.playerStats, HG.emptyBoard)
+    HG.haskellGo(HG.emptyBoard HG.boardSize) HG.playerID
