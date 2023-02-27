@@ -32,6 +32,9 @@ ghc-options:
 - -Wmissing-home-modules
 - -Wpartial-fields
 - -Wredundant-constraints
+- -Wno-noncanonical-monoid-instances
+- -Wno-missing-export-lists
+- -Wno-type-defaults
 
 library:
   source-dirs: src
@@ -39,6 +42,7 @@ library:
   - HUnit
   - containers
   - process
+  - MissingH
 
 executables:
   HaskellGo-exe:
