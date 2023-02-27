@@ -238,8 +238,10 @@ displayScore stats =
 {-- /*TODO
    function to identify if a user has changed the state in a position on the
     board.
-  [ ] Modify board to be a list of lists for positons, each index is a row
-    [ ] Update display then
+  [ ] Modify board to be a list of lists for positons, each index is a row in
+      the range of 0->8 and each row is 0->8.
+    [ ] Update display then to work with this.
+      [ ] Including properly numbering the rows.
     [ ] Update ??? 
   [ ] Use a GameState versus seperate vars to track the ENTIRE game
   [ ] Check if move is valid
