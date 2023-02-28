@@ -311,19 +311,17 @@ displayScore stats =
 
 
 {-- /*TODO
-   function to identify if a user has changed the state in a position on the
-    board.
-  [ ] See about checking North, South, East and West liberties using the
+  [ ] Check North, South, East and West liberties using the
       rowLimit. Write an singular function for each of these
       - names: check____ || is____ ||
-      [ ] Need a function isOccupied :: Board -> (x,y) -> Bool
+      [x] Need a function isOccupied :: Board -> (x,y) -> Bool
           - uses posCalc for (x,y) probably
   [ ] Use a GameState versus seperate vars to track the ENTIRE game
-  [ ] Check if move is valid
-  [ ] functions to look north, south, east and west on the board. bool returns?
+      [ ] Update all required members before making new state first
   [ ] Check and capture if liberties are gone
   [ ] Player stats -- kinda has to be done in tandem with capture
   [ ] tbd
+  [x] Check if move is valid
   [x] Proper state and display
   [x] Player input
   [x] Player toggler
