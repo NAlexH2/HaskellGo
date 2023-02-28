@@ -1,8 +1,6 @@
-{- 
-Alex Harris
-Final Project: HaskellGo
-Date Started: 2/25/2023
--}
+-- Alex Harris
+-- Final Project: HaskellGo
+-- Date Started: 2/25/2023
 
 module HaskellGo (  haskellGo,
                     emptyBoard,
@@ -30,29 +28,36 @@ type Board = [Position]
 type GameState = ([PlayerStats], Board)
 -- playerStats = [(PB,(0,0)), (PW,(0,0))]
 
+
 -- Define the size of the board here. Future would like to make it user choice
 -- where n x n square and n >= 9
 boardSize :: Int
 boardSize = 9
 
+
 -- specifically in refernce to the max size of boards list
 boardSpaces :: Int
 boardSpaces = (boardSize*boardSize)-1
 
+
 rowSpaces :: Int
 rowSpaces = boardSize - 1
+
 
 -- Used to quickly identify if "pass" was entered
 pass :: (Int, Int)
 pass = (-99, -99)
 
+
 -- Used to quickly identify if "quit" was entered
 quit :: (Int, Int)
 quit = (-100, -100)
 
+
 -- Used to quickly check if there was an error on user input for getCoordinates
 badInput :: (Int, Int)
 badInput = (-1,-1)
+
 
 -- Just some constructors for each char in the type position
 stone :: Stones -> Char
@@ -62,45 +67,55 @@ stone TBlack = 'B'
 stone White = 'w'
 stone TWhite = 'W'
 
+
 -- toggles between the users as the game goes
 turnToggle :: PlayerID -> PlayerID
 turnToggle PB = PW
 turnToggle PW = PB
+
 
 -- Identify the current player
 currentPlayer :: PlayerID -> String
 currentPlayer p | p == PB = "BLACK"
                 | otherwise = "WHITE"
 
--- Return the player stone from Stones w/ respect to the current
--- playerID passed in
+
+-- Return the player stone from Stones w/ respect to the current playerID
 pStone :: PlayerID -> Char
 pStone PB = stone Black
 pStone PW = stone White
 
 
+-- //TODO - Comment
 emptyStats :: [PlayerStats]
 emptyStats = [(PB,(0,0)), (PW,(0,0))]
 
+-- //TODO - Comment
 currentPlayersStats :: PlayerID -> [PlayerStats] -> PlayerStats
 currentPlayersStats pID pStats = case filter (\(pid, _) -> pid == pID) pStats of
                             [] -> error "No Player Stats Available"
                             (x:_) -> x
+
 
 -- Allows the code to swap between players. White initializes this
 -- because the first call to `turnToggle` will have black go first.
 notFirstPlayer :: PlayerID
 notFirstPlayer = PW
 
+
+-- //TODO - Comment
 statsState :: GameState -> [PlayerStats]
 statsState = fst
 
+
+-- //TODO - Comment
 boardState :: GameState -> Board
 boardState = snd
 
+
+-- //TODO - Comment
 newState :: [PlayerStats] -> Board -> GameState
 newState a b = (a, b)
-
 
 
 -- Simple utility function to clear the screen. At least on Linux type systems.
@@ -125,6 +140,7 @@ emptyBoard n  =
   -- Maybe could even use this in North/South?? //TODO?
 -}
 
+-- //TODO - Improve comment
 -- Where it all starts. Recursively runs the game using a do statement.
 haskellGo :: GameState -> PlayerID -> IO ()
 haskellGo currentGame pID =
@@ -163,9 +179,11 @@ haskellGo currentGame pID =
       let currentGame' = updateGame newStats newBoard
       haskellGo currentGame' pID'
 
+
 -- Creates a new GameState to be used for recursive play
 updateGame :: [PlayerStats] -> Board -> GameState
 updateGame s b = (s, b)
+
 
 -- //TODO  -- Updates player stats for current pID if they captured stones
 updateStats :: PlayerID -> [PlayerStats] -> [Int] -> [PlayerStats]
@@ -214,6 +232,7 @@ isOccupied (b:bs) pos
   | not $ null b && null bs               = False
   | otherwise                             = False
 
+
 -- Identify the positions on the board which are to be "captured" when
 -- building a new board.
 capturedStones :: PlayerID -> GameState -> [Int]
@@ -223,7 +242,7 @@ capturedStones p game = undefined
     s = statsState game
 
 
--- playerStats = [(PB,(0,0)), (PW,(0,0))]
+-- Performs pattern matching to ensure we update the correct players pass stat
 updatePlayerPass :: PlayerID -> (Int, Int) -> [PlayerStats] -> [PlayerStats]
 updatePlayerPass _ _ [p]        = [p]
 updatePlayerPass _ _ []         = []
@@ -231,8 +250,10 @@ updatePlayerPass pID mv (p:ps)
   | pID /= fst p && mv == pass  = p:updatePlayerPass pID mv ps
   | otherwise                   = updatePlayerPass' p:ps
 
+-- Creates new PlayerStats for the correct player incrementing their pass
 updatePlayerPass' :: PlayerStats -> PlayerStats
 updatePlayerPass' ps = (fst ps, (fst (snd ps), snd (snd ps)+1))
+
 
 -- Returns current players pass count
 getPassCount :: PlayerID -> GameState -> Int
@@ -241,7 +262,7 @@ getPassCount pID game = snd $ snd pStats
     pStats = currentPlayersStats pID (statsState game)
 
 
-
+-- //TODO - Comment
 getCoordinates :: IO (Int, Int)
 getCoordinates =
   do
@@ -260,10 +281,7 @@ getCoordinates =
         return (x,y)
 
 
--- displays the current state of the game. 
--- Another do because of the fact each row itself
--- will be a recursive display. Both have to execute once here, while
--- while displayEachRow executes recursively
+-- Displays the current state of the game. 
 displayState :: GameState -> IO ()
 displayState gameState =
   do
@@ -273,11 +291,13 @@ displayState gameState =
       where
           row = 1
 
+
 -- Visualization of the board to the user for x y coordinates to be entered
 displayTopRows :: IO ()
 displayTopRows = printf "  x  1 2 3 4 5 6 7 8 9\ny   __________________"
 
--- The most up-to date state of the board.
+
+-- Displays most up to date state of the board as to be human readable.
 displayEachRow :: Int -> Board -> IO ()
 displayEachRow row board =
     if row < boardSize+1 then
@@ -287,7 +307,8 @@ displayEachRow row board =
         displayEachRow (row+1) board
     else printf "\n"
 
--- get the state of each position in each row
+
+-- Get the state of each position in a row as a string
 rowStates :: (Int,Int) -> Board -> String
 rowStates _ []          = []
 rowStates (s,e) (b:bs)
@@ -303,6 +324,7 @@ rowLimit :: Int -> (Int, Int)
 rowLimit row = (row*10-(10+(row-1)), row*10-(row+1))
 
 
+-- //TODO - Comment
 displayScore :: [PlayerStats] -> IO ()
 displayScore stats =
   do
