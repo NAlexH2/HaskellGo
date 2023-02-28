@@ -9,5 +9,5 @@ import Test.HUnit()
 main :: IO ()
 main = 
   do
-    let newGame = (HG.playerStats, HG.emptyBoard)
-    HG.haskellGo newGame HG.playerID
+    let newGame = HG.newState HG.emptyStats (HG.emptyBoard HG.boardSize)
+    HG.haskellGo newGame HG.notFirstPlayer
