@@ -1,13 +1,16 @@
--- Alex Harris
--- Final Project: HaskellGo
--- Date Started: 2/25/2023
+{- 
+Alex Harris
+Final Project: HaskellGo
+Date Started: 2/25/2023
+-}
 
 module HaskellGo (  haskellGo,
                     emptyBoard,
                     boardSize,
-                    playerID,
-                    playerStats,
-                    GameState ) where
+                    emptyStats,
+                    notFirstPlayer,
+                    newState ) where
+
 import Text.Printf ( printf )
 import System.Process ( system )
 import System.Exit ( exitSuccess )
@@ -19,12 +22,13 @@ import Data.List.Utils ( contains )
 
 
 data Stones = Blank | Black | White | TBlack | TWhite deriving (Eq, Show)
-data Player = PB | PW deriving (Eq, Show) -- PB = PlayerBlack, PW = PlayerWhite
-type PlayerStats = (Player, (Int, Int))
+data PlayerID = PB | PW deriving (Eq, Show) -- PB = PlayerBlack, PW = PlayerWhite
+type PlayerStats = (PlayerID, (Int, Int))
 -- First Int is score, 2nd is pass counter... This needs more tinkering
 type Position = (Char, Int)
-type Board = [[Position]]
+type Board = [Position]
 type GameState = ([PlayerStats], Board)
+-- playerStats = [(PB,(0,0)), (PW,(0,0))]
 
 -- Define the size of the board here. Future would like to make it user choice
 -- where n x n square and n >= 9
@@ -38,6 +42,18 @@ boardSpaces = (boardSize*boardSize)-1
 rowSpaces :: Int
 rowSpaces = boardSize - 1
 
+-- Used to quickly identify if "pass" was entered
+pass :: (Int, Int)
+pass = (-99, -99)
+
+-- Used to quickly identify if "quit" was entered
+quit :: (Int, Int)
+quit = (-100, -100)
+
+-- Used to quickly check if there was an error on user input for getCoordinates
+badInput :: (Int, Int)
+badInput = (-1,-1)
+
 -- Just some constructors for each char in the type position
 stone :: Stones -> Char
 stone Blank = '_'
@@ -47,36 +63,43 @@ stone White = 'w'
 stone TWhite = 'W'
 
 -- toggles between the users as the game goes
-turnToggle :: Player -> Player
+turnToggle :: PlayerID -> PlayerID
 turnToggle PB = PW
 turnToggle PW = PB
 
 -- Identify the current player
-currentPlayer :: Player -> String
+currentPlayer :: PlayerID -> String
 currentPlayer p | p == PB = "BLACK"
                 | otherwise = "WHITE"
 
 -- Return the player stone from Stones w/ respect to the current
 -- playerID passed in
-pStone :: Player -> Char
+pStone :: PlayerID -> Char
 pStone PB = stone Black
 pStone PW = stone White
 
 
-playerStats :: [PlayerStats]
-playerStats = [(PB,(0,0)), (PW,(0,0))]
+emptyStats :: [PlayerStats]
+emptyStats = [(PB,(0,0)), (PW,(0,0))]
+
+currentPlayersStats :: PlayerID -> [PlayerStats] -> PlayerStats
+currentPlayersStats pID pStats = case filter (\(pid, _) -> pid == pID) pStats of
+                            [] -> error "No Player Stats Available"
+                            (x:_) -> x
 
 -- Allows the code to swap between players. White initializes this
 -- because the first call to `turnToggle` will have black go first.
-playerID :: Player
-playerID = PW
+notFirstPlayer :: PlayerID
+notFirstPlayer = PW
 
-scoreState :: GameState -> [PlayerStats]
-scoreState = fst
+statsState :: GameState -> [PlayerStats]
+statsState = fst
 
 boardState :: GameState -> Board
 boardState = snd
 
+newState :: [PlayerStats] -> Board -> GameState
+newState a b = (a, b)
 
 
 
@@ -94,10 +117,16 @@ emptyBoard n  =
   do
     let _ = clearScreen
     if n < 9 then []
-    else replicate (n-1) [(stone Blank, i) | i <- [0..n-1]]
+    else [(stone Blank, i) | i <- [0..(n*n)-1]]
+{- 
+  /*FIXME - This is actually fine vs having a list of list of this. That is
+  because we can calc East/West with (Start,End) - (s,e) - in the same I use it
+  in rowLimit which takes (rowLimit row) before hand!
+  -- Maybe could even use this in North/South?? //TODO?
+-}
 
 -- Where it all starts. Recursively runs the game using a do statement.
-haskellGo :: GameState -> Player -> IO ()
+haskellGo :: GameState -> PlayerID -> IO ()
 haskellGo currentGame pID =
   do
     -- //HACK - Remove these in final version
@@ -112,60 +141,105 @@ haskellGo currentGame pID =
     printf "It is player %s's turn...\n" (currentPlayer pID')
     putStr "x y: "
     move <- getCoordinates
-    if not $ checkMove (boardState currentGame) move then do
+    -- //HACK - remove in final version
+    -- print (show (statsState currentGame))
+    -- uncurry (printf "\n\n\n(%d,%d) %d\n\n\n") move (posCalc move)
+    let legality = legalMove (boardState currentGame) move
+    if legality > 1 then do
       _ <- clearScreen
       -- //HACK - Remove these in final version
       -- uncurry (printf "\n\n\n(%d,%d)\n\n\n") move
-      printf "\n**ERROR** - Invalid move detected. Please try again.\n"
+      printf "\n**ERROR** - %s\n" (errorBadMove legality)
       let pID'' = turnToggle pID'
       haskellGo currentGame pID''
     else do
+      -- //TODO see if player passed 2 times, end game if so.
+      let stats' = updatePlayerPass pID' move (statsState currentGame)
       -- //HACK - Remove these in final version
       -- uncurry (printf "\n\n\n(%d,%d)\n\n\n") move
-      let captured = capturedStones pID' (scoreState currentGame)
-      let newStats = updateStats pID' (scoreState currentGame)
+      let captured = capturedStones pID' currentGame
+      let newStats = updateStats pID' stats' captured
       let newBoard = makeBoard pID' (boardState currentGame) (0, posCalc move)
-      let newState = (newStats, newBoard)
-      haskellGo newState pID'
+      let currentGame' = updateGame newStats newBoard
+      haskellGo currentGame' pID'
+
+-- Creates a new GameState to be used for recursive play
+updateGame :: [PlayerStats] -> Board -> GameState
+updateGame s b = (s, b)
+
+-- //TODO  -- Updates player stats for current pID if they captured stones
+updateStats :: PlayerID -> [PlayerStats] -> [Int] -> [PlayerStats]
+updateStats _ pStats [] = pStats
+updateStats pId pStats (x:xs)= undefined
+
 
 -- Quickly get the position in the Board[Position] list being changed
 posCalc :: (Int, Int) -> Int
 posCalc (x,y) = (x-1)+(y-1)*boardSize
 
+
 -- make a move and new board based off of playeres coordinates
-makeBoard :: Player -> Board -> (Int, Int) -> Board
-makeBoard _ [] (_, _)        = []
+makeBoard :: PlayerID -> Board -> (Int, Int) -> Board
+makeBoard _ [] (_, _)         = []
 makeBoard pID (b:bs) (i, pos)
-  | i == pos && snd b == pos = (pStone pID, pos):makeBoard pID bs (i+1, pos)
-  | i > boardSpaces = []
-  | otherwise = b:makeBoard pID bs (i+1, pos)
+  | i == pos && snd b == pos  = (pStone pID, pos):makeBoard pID bs (i+1, pos)
+  | i > boardSpaces           = []
+  | otherwise                 = b:makeBoard pID bs (i+1, pos)
 
--- //FIXME this can be removed most likely but hold onto it in the event it
--- inspires something in checkMove later
--- stages the newboard with some small operations.
--- makeMove :: Player -> Board -> (Int,Int) -> Board
--- makeMove pID board pos = makeBoard pID board (0, posCalc pos
 
-{-- //TODO Just do this to check to see if the space is occupied,
-  out of bounds, invalid input, etc. User some return tuples to give errors
-  lazy but fine--}
-checkMove :: Board -> (Int, Int) -> Bool
-checkMove board move | move == (-99,-99)  = False -- //TODO increment pass here/maybe do a bit more io
-                     | otherwise          = True
-capturedStones :: Player -> Board -> Int -> [Int]
-capturedStones p b i = undefined
+-- Checks to see if the user made a legal move on the current gameboard
+legalMove :: Board -> (Int, Int) -> Int
+legalMove board move  | move == pass            = 1
+                      | move == badInput        = 2
+                      | isOccupied board place  = 3
+                      | place > boardSpaces     = 4
+                      | otherwise               = 1
+    where
+      place = posCalc move
+
+-- Error handling for the game. Allows user to correct mistakes
+errorBadMove :: Int -> String
+errorBadMove e  | e == 2      = "Received invalid input from the user."
+                | e == 3      = "That space is occupied by the other player."
+                | e == 4      = "This move is out of bounds for this board."
+                | otherwise   = ""
+
+-- Checks to see if the position passed in is occupied by another player
+isOccupied :: Board -> Int -> Bool
+isOccupied [] _                           = error "Empty game board detected"
+isOccupied (b:bs) pos
+  | pos > boardSpaces                     = False
+  | pos == snd b && fst b /= stone Blank  = True
+  | pos /= snd b                          = isOccupied bs pos
+  | not $ null b && null bs               = False
+  | otherwise                             = False
+
+-- Identify the positions on the board which are to be "captured" when
+-- building a new board.
+capturedStones :: PlayerID -> GameState -> [Int]
+capturedStones p game = undefined
+  where
+    b = boardState game
+    s = statsState game
 
 
 -- playerStats = [(PB,(0,0)), (PW,(0,0))]
-updateStats :: Player -> [PlayerStats] -> (Int, Int) -> [PlayerStats]
-updateStats _ [] _ = []
-updateStats pID (p:ps) mv
-  | mv == (-99,-99) && pID == PB = updatePlayerPass p:ps
-  | mv == (-99,-99) && pID == PW = p:updateStats pID ps mv
-  | otherwise = p:ps
+updatePlayerPass :: PlayerID -> (Int, Int) -> [PlayerStats] -> [PlayerStats]
+updatePlayerPass _ _ [p]        = [p]
+updatePlayerPass _ _ []         = []
+updatePlayerPass pID mv (p:ps)
+  | pID /= fst p && mv == pass  = p:updatePlayerPass pID mv ps
+  | otherwise                   = updatePlayerPass' p:ps
 
-updatePlayerPass :: PlayerStats -> PlayerStats
-updatePlayerPass ps = (fst ps, (fst (snd ps), snd (snd ps)+1))
+updatePlayerPass' :: PlayerStats -> PlayerStats
+updatePlayerPass' ps = (fst ps, (fst (snd ps), snd (snd ps)+1))
+
+-- Returns current players pass count
+getPassCount :: PlayerID -> GameState -> Int
+getPassCount pID game = snd $ snd pStats
+  where
+    pStats = currentPlayersStats pID (statsState game)
+
 
 
 getCoordinates :: IO (Int, Int)
@@ -176,12 +250,13 @@ getCoordinates =
     -- //TODO - implement pass once stats is working. Should be easy... I hope
     if contains "pass" $ map toLower coords then return (-99,-99)
     else if contains "quit" $ map toLower coords then exitSuccess
+    else if contains "-" coords then return (-1, -1)
     else do
       -- Higher order! Found a place!
-      let coords' = filter (not . null) $ map (filter isDigit) (words coords)
+      let coords'   = filter (not . null) $ map (filter isDigit) (words coords)
       if length coords' /= 2 then return (-1, -1)
       else do
-        let (x, y) = (\b -> (read (head b) ::Int, read (last b) ::Int)) coords'
+        let (x, y)  = (\b -> (read (head b) ::Int, read (last b) ::Int)) coords'
         return (x,y)
 
 
@@ -194,7 +269,7 @@ displayState gameState =
   do
     displayTopRows
     displayEachRow row (boardState gameState)
-    displayScore (scoreState gameState)
+    displayScore (statsState gameState)
       where
           row = 1
 
@@ -207,7 +282,7 @@ displayEachRow :: Int -> Board -> IO ()
 displayEachRow row board =
     if row < boardSize+1 then
       do
-        let x = show row ++ " | " ++ rowStates (rowIndexes row) board
+        let x = show row ++ " | " ++ rowStates (rowLimit row) board
         printf "\n%s" x
         displayEachRow (row+1) board
     else printf "\n"
@@ -216,16 +291,16 @@ displayEachRow row board =
 rowStates :: (Int,Int) -> Board -> String
 rowStates _ []          = []
 rowStates (s,e) (b:bs)
-  | snd b < s = rowStates (s,e) bs
-  | s <= e = " " ++ fst b : rowStates (s+1,e) bs
+  | snd b < s           = rowStates (s,e) bs
+  | s <= e              = " " ++ fst b : rowStates (s+1,e) bs
   | otherwise           =  [] -- rowStates (s+1,e) bs
 
 
 -- This took a little to figure out. Each starting and ending index 
 -- based on the row being passed in because the Board has n-Positions where
 -- (n*n)-1 positions available. (start, end) for the current row
-rowIndexes :: Int -> (Int, Int)
-rowIndexes row = (row*10-(10+(row-1)), row*10-(row+1))
+rowLimit :: Int -> (Int, Int)
+rowLimit row = (row*10-(10+(row-1)), row*10-(row+1))
 
 
 displayScore :: [PlayerStats] -> IO ()
@@ -238,11 +313,11 @@ displayScore stats =
 {-- /*TODO
    function to identify if a user has changed the state in a position on the
     board.
-  [ ] Modify board to be a list of lists for positons, each index is a row in
-      the range of 0->8 and each row is 0->8.
-    [ ] Update display then to work with this.
-      [ ] Including properly numbering the rows.
-    [ ] Update ??? 
+  [ ] See about checking North, South, East and West liberties using the
+      rowLimit. Write an singular function for each of these
+      - names: check____ || is____ ||
+      [ ] Need a function isOccupied :: Board -> (x,y) -> Bool
+          - uses posCalc for (x,y) probably
   [ ] Use a GameState versus seperate vars to track the ENTIRE game
   [ ] Check if move is valid
   [ ] functions to look north, south, east and west on the board. bool returns?
