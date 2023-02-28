@@ -85,22 +85,6 @@ displayEachRow row board =
     else printf "\n"
 
 
--- Get the state of each position in a row as a string
-rowStates :: (Int,Int) -> Board -> String
-rowStates _ []          = []
-rowStates (s,e) (b:bs)
-  | snd b < s           = rowStates (s,e) bs
-  | s <= e              = " " ++ fst b : rowStates (s+1,e) bs
-  | otherwise           =  [] -- rowStates (s+1,e) bs
-
-
--- This took a little to figure out. Each starting and ending index 
--- based on the row being passed in because the Board has n-Positions where
--- (n*n)-1 positions available. (start, end) for the current row
-rowLimit :: Int -> (Int, Int)
-rowLimit row = (row*10-(10+(row-1)), row*10-(row+1))
-
-
 -- //TODO - Comment
 displayScore :: [PlayerStats] -> IO ()
 displayScore stats =
