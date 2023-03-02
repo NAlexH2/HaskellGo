@@ -3,9 +3,14 @@ module GoTypesData where
 
 data Stones = Blank | Black | White | TBlack | TWhite deriving (Eq, Show)
 data PlayerID = PB | PW deriving (Eq, Show) -- PB = PlayerBlack, PW = PlayerWhite
+
+-- 1st Int is score, 2nd is pass counter... This needs more tinkering
+-- record type instead for playerstats?
 type PlayerStats = (PlayerID, (Int, Int))
--- First Int is score, 2nd is pass counter... This needs more tinkering
-type Position = (Char, Int)
+
+-- Char is state of the position, 1st Int is the row, 
+-- 2nd Int is position in the list
+type Position = (Char, (Int,Int))
 type Board = [Position]
 type GameState = ([PlayerStats], Board)
 -- playerStats = [(PB,(0,0)), (PW,(0,0))]
