@@ -5,7 +5,7 @@
 module HaskellGo where
 
 import GoWork
-import GoTypesData             
+import GoTypesData
 import GoConsts
 import Text.Printf ( printf )
 
@@ -18,7 +18,7 @@ haskellGo currentGame pID =
     -- //HACK - Remove these in final version
     -- print ((length board)-1)
     -- print (board !! 80)
-    -- print (show board)
+    -- print (show (boardState currentGame))
     printf "Type 'quit' anytime to end the game or 'pass' to skip your turn.\n"
     printf "To make your move, simply type an x and y that is on the grid. "
     printf "Like so:\n'x y: 9 9'\n\n"
@@ -90,20 +90,30 @@ displayScore :: [PlayerStats] -> IO ()
 displayScore stats =
   do
     printf "------------------------\n"
-    printf "Score -- b: 0 -- w: 0\n\n"
+    printf "Score -- b: %d -- w: %d\n\n" p1 p2
+  where
+    p1 = 0 :: Int
+    p2 = 0 :: Int
 
 
 {-- /*TODO
-  [ ] Check North, South, East and West liberties using the
-      rowLimit. Write an singular function for each of these
-      - names: check____ || is____ ||
-      [x] Need a function isOccupied :: Board -> (x,y) -> Bool
-          - uses posCalc for (x,y) probably
-  [ ] Use a GameState versus seperate vars to track the ENTIRE game
-      [ ] Update all required members before making new state first
+  [ ] When checking liberties, check to see if the surrounding stones are the
+      same color or not. If all (except for the stone we came from) are opposite
+      color, then it's captured. Otherwise, it's still free.
+      - The value for previous node could literally be prev passed in as an arg
+      [x] Check North, South, East and West liberties using the
+          rowLimit. Write an singular function for each of these
+          [x] Need a function isOccupied :: Board -> (x,y) -> Bool
   [ ] Check and capture if liberties are gone
+  [ ] Some how check territories? Maybe?
+    [ ] Or just stick with the "if it is shared, both get a point"?
+    [ ] This honestly might just come down to capture count...
   [ ] Player stats -- kinda has to be done in tandem with capture
   [ ] tbd
+  [x] Use a GameState versus seperate vars to track the ENTIRE game
+      [x] Update all required members before making new state first
+  [x] Implement row addition to position? Or create a working calc for any
+      value... I like this option. `= floor (pos/boardsize)` ?
   [x] Check if move is valid
   [x] Proper state and display
   [x] Player input
