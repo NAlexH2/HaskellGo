@@ -6,7 +6,7 @@ import GoTypesData
       PlayerStats,
       PlayerID(..),
       stone,
-      Stones(Blank, Black, White) )
+      Stones(Blank, Black, White), Position )
 import GoConsts ( boardSize, boardSpaces, pass, badInput )
 import System.Process ( system )
 import System.Exit ( exitSuccess )
@@ -69,8 +69,31 @@ emptyBoard :: Int -> Board
 emptyBoard n  =
   do
     let _ = clearScreen
-    if n < 9 then []
-    else [(stone Blank, i) | i <- [0..(n*n)-1]]
+    [(stone Blank, (r,i)) | i <- [0..(n*n)-1], let r = currentRow i]
+    -- //TODO if i/boardsize /= whole number then r+1 else r
+
+
+-- //TODO - Comment
+currentRow :: Int -> Int
+currentRow i = i `div` boardSize
+
+-- //TODO - Comment
+previousRow :: Int -> Int
+previousRow i = (i `div` boardSize)-1
+
+-- //TODO - Comment
+nextRow :: Int -> Int
+nextRow i = (i `div` boardSize)+1
+
+-- //TODO - Comment
+getPos :: Position -> Int
+getPos pos = snd (snd pos)
+
+-- Calculates start and end positions of the row passed in
+-- with the given boardSize provided at the top in GoConsts.hs
+rowLimit :: Int -> (Int, Int)
+rowLimit row = (row*boardSize, row*boardSize+(boardSize-1))
+
 {- 
   /*FIXME - This is actually fine vs having a list of list of this. That is
   because we can calc East/West with (Start,End) - (s,e) - in the same I use it
@@ -86,7 +109,7 @@ updateGame s b = (s, b)
 -- //TODO  -- Updates player stats for current pID if they captured stones
 updateStats :: PlayerID -> [PlayerStats] -> [Int] -> [PlayerStats]
 updateStats _ pStats [] = pStats
-updateStats pId pStats (x:xs)= undefined
+updateStats pId pStats (x:xs) = undefined
 
 
 -- Quickly get the position in the Board[Position] list being changed
@@ -95,12 +118,19 @@ posCalc (x,y) = (x-1)+(y-1)*boardSize
 
 
 -- make a move and new board based off of playeres coordinates
+-- //TODO holy cow fix this mess... i == pos && snd snd b == .... alllll that.
+-- Make it easy to read dude
 makeBoard :: PlayerID -> Board -> (Int, Int) -> Board
-makeBoard _ [] (_, _)         = []
+makeBoard _ [] (_, _)           = []
 makeBoard pID (b:bs) (i, pos)
-  | i == pos && snd b == pos  = (pStone pID, pos):makeBoard pID bs (i+1, pos)
-  | i > boardSpaces           = []
-  | otherwise                 = b:makeBoard pID bs (i+1, pos)
+  | i == pos && getPos b == pos = posUpdate pID pos:makeBoard pID bs (i+1, pos)
+  | i > boardSpaces             = []
+  | otherwise                   = b:makeBoard pID bs (i+1, pos)
+
+-- //TODO - Comment
+posUpdate :: PlayerID -> Int -> Position
+posUpdate pID pos = (pStone pID, (currentRow pos, pos))
+
 
 
 -- Checks to see if the user made a legal move on the current gameboard
@@ -116,13 +146,13 @@ legalMove board move  | move == pass            = 1
 
 -- Checks to see if the position passed in is occupied by another player
 isOccupied :: Board -> Int -> Bool
-isOccupied [] _                           = error "Empty game board detected"
+isOccupied [] _                             = error "Empty game board detected"
 isOccupied (b:bs) pos
-  | pos > boardSpaces                     = False
-  | pos == snd b && fst b /= stone Blank  = True
-  | pos /= snd b                          = isOccupied bs pos
-  | not $ null b && null bs               = False
-  | otherwise                             = False
+  | pos > boardSpaces                       = False
+  | pos == getPos b && fst b /= stone Blank = True
+  | pos /= getPos b                         = isOccupied bs pos
+  | not $ null b && null bs                 = False
+  | otherwise                               = False
 
 
 -- Identify the positions on the board which are to be "captured" when
@@ -132,6 +162,49 @@ capturedStones p game = undefined
   where
     b = boardState game
     s = statsState game
+
+-- check the current position on the board to see if is to be considered
+-- captured. 
+checkLiberties :: Board -> Int -> Bool
+checkLiberties board pos = and bools
+  where
+    north = pos-9
+    south = pos+9
+    east = pos+1
+    west = pos-1
+    bools =
+      [
+        occupiedNorth board north (rowLimit (previousRow pos)),
+        occupiedSouth board south (rowLimit (nextRow pos)),
+        occupiedEast board east (rowLimit (currentRow pos)),
+        occupiedWest board west (rowLimit (currentRow pos))
+      ]
+
+
+-- Check the respective cardinals for the current position on the board for
+-- each of the following functions. If occupied then TRUE, otherwise FALSE.
+-- If it is occupied, that liberty is no longer available. This is important
+-- for determining captured stones.
+occupiedNorth :: Board -> Int -> (Int, Int) -> Bool
+occupiedNorth board pos' (s, _) | s < boardSpaces       = True
+                                | isOccupied board pos' = True
+                                | otherwise             = False
+
+occupiedSouth :: Board -> Int -> (Int, Int) -> Bool
+occupiedSouth board pos' (_, e) | e > boardSpaces       = True
+                                | isOccupied board pos' = True
+                                | otherwise             = False
+
+occupiedEast :: Board -> Int -> (Int, Int) -> Bool
+occupiedEast board pos' (_, e)  | pos' > e              = True
+                                | isOccupied board pos' = True
+                                | otherwise             = False
+
+occupiedWest :: Board -> Int -> (Int, Int) -> Bool
+occupiedWest board pos' (s, _)  | pos' < s              = True
+                                | isOccupied board pos' = True
+                                | otherwise             = False
+
 
 -- Performs pattern matching to ensure we update the correct players pass stat
 updatePlayerPass :: PlayerID -> (Int, Int) -> [PlayerStats] -> [PlayerStats]
@@ -176,13 +249,8 @@ getCoordinates =
 rowStates :: (Int,Int) -> Board -> String
 rowStates _ []          = []
 rowStates (s,e) (b:bs)
-  | snd b < s           = rowStates (s,e) bs
+  | getPos b < s        = rowStates (s,e) bs
   | s <= e              = " " ++ fst b : rowStates (s+1,e) bs
-  | otherwise           =  [] -- rowStates (s+1,e) bs
+  | otherwise           =  [] -- rowStates (s+1,e) bs //TODO What is this comment for?
 
 
--- This took a little to figure out. Each starting and ending index 
--- based on the row being passed in because the Board has n-Positions where
--- (n*n)-1 positions available. (start, end) for the current row
-rowLimit :: Int -> (Int, Int)
-rowLimit row = (row*10-(10+(row-1)), row*10-(row+1))
