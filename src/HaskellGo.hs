@@ -97,8 +97,6 @@ displayScore stats =
 
 
 {-- /*TODO
-  [ ] Write tests for the checkpoint
-  [ ] Write up for checkpoint
   [ ] Check unit liberties and single stone liberties
       [ ] Unit liberties allow a funciton to run and see if all those liberties
         are captured. A list of stones that are apart of a unit and then
@@ -121,11 +119,16 @@ displayScore stats =
     [ ] Or just stick with the "if it is shared, both get a point"?
     [ ] This honestly might just come down to capture count...
   [ ] Player stats -- kinda has to be done in tandem with capture
-  [ ] tbd
+
+  
+  *** COMPLETED TASKS ***
+  [x] Write up for checkpoint
+  [x] Write tests for the checkpoint
   [x] Use a GameState versus seperate vars to track the ENTIRE game
       [x] Update all required members before making new state first
   [x] Implement row addition to position? Or create a working calc for any
       value... I like this option. `= floor (pos/boardsize)` ?
+      [x] wound up realizing simplified version! Easy done.
   [x] Check if move is valid
   [x] Proper state and display
   [x] Player input
