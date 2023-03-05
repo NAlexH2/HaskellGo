@@ -163,13 +163,19 @@ capturedStones p game = undefined
     b = boardState game
     s = statsState game
 
+
+-- Traverse the entire board identifying every stone that is apart of a unit.
+-- A unit is any colored stone with adjacent SAME COLORED stones.
+
+
+
 -- check the current position on the board to see if is to be considered
 -- captured. 
 checkLiberties :: Board -> Int -> Bool
 checkLiberties board pos = and bools
   where
-    north = pos-9
-    south = pos+9
+    north = pos-boardSize
+    south = pos+boardSize
     east = pos+1
     west = pos-1
     bools =
