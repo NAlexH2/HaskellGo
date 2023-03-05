@@ -1,7 +1,7 @@
 module GoTypesData where
 
 
-data Stones = Blank | Black | White | TBlack | TWhite deriving (Eq, Show)
+data Stones = Blank | Black | White deriving (Eq, Show)
 data PlayerID = PB | PW deriving (Eq, Show) -- PB = PlayerBlack, PW = PlayerWhite
 
 -- PlayerID is either PB or PW, 1st Int is score, 2nd is pass counter
