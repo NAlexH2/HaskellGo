@@ -56,7 +56,7 @@ emptyBoardTest =
   ]
 
 {-- 
-Big test, the game "played" itself to ensure stones were captured and score
+//TODO Big test, the game "played" itself to ensure stones were captured and score
 was updated and the newboard was produced.
 --}
 
