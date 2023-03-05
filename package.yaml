@@ -66,3 +66,7 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - HaskellGo
+    - HUnit
+    - containers
+    - process
+    - MissingH
