@@ -58,6 +58,7 @@ emptyBoardTest =
 {-- 
 //TODO Big test, the game "played" itself to ensure stones were captured and score
 was updated and the newboard was produced.
+ This cannot be completed yet due to the program still being a WIP.
 --}
 
 
