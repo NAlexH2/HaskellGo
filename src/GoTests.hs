@@ -1,4 +1,4 @@
-module Gotests where
+module GoTests where
 
 import GoConsts
 import GoTypesData
