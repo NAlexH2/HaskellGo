@@ -33,4 +33,3 @@ quit = (-100, -100)
 -- Used to quickly check if there was an error on user input for getCoordinates
 badInput :: (Int, Int)
 badInput = (-1,-1)
-
