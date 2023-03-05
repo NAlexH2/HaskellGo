@@ -74,7 +74,7 @@ emptyBoard n  =
 
 
 -- //TODO - Comment
-currentRow :: Int -> Int
+currentRow :: Int  -> Int
 currentRow i = i `div` boardSize
 
 -- //TODO - Comment
@@ -117,7 +117,7 @@ posCalc :: (Int, Int) -> Int
 posCalc (x,y) = (x-1)+(y-1)*boardSize
 
 
--- make a move and new board based off of playeres coordinates
+-- make a move and new board based off of players coordinates
 -- //TODO holy cow fix this mess... i == pos && snd snd b == .... alllll that.
 -- Make it easy to read dude
 makeBoard :: PlayerID -> Board -> (Int, Int) -> Board
@@ -157,6 +157,9 @@ isOccupied (b:bs) pos
 
 -- Identify the positions on the board which are to be "captured" when
 -- building a new board.
+-- //TODO - finish this up when you've decided on the approach to identify...
+--          Literally everything it feels like. Reference your notes in the
+--          TODO in HaskellGo.hs
 capturedStones :: PlayerID -> GameState -> [Int]
 capturedStones p game = undefined
   where
@@ -166,7 +169,11 @@ capturedStones p game = undefined
 
 -- Traverse the entire board identifying every stone that is apart of a unit.
 -- A unit is any colored stone with adjacent SAME COLORED stones.
+identifyUnits :: Board -> [Int]
+identifyUnits board = undefined
 
+identifyUnits' :: PlayerID -> Board -> [Int]
+identifyUnits' pID board = undefined
 
 
 -- check the current position on the board to see if is to be considered
@@ -214,7 +221,6 @@ occupiedWest board pos' (s, _)  | pos' < s              = True
 
 -- Performs pattern matching to ensure we update the correct players pass stat
 updatePlayerPass :: PlayerID -> (Int, Int) -> [PlayerStats] -> [PlayerStats]
-updatePlayerPass _ _ [p]        = [p]
 updatePlayerPass _ _ []         = []
 updatePlayerPass pID mv (p:ps)
   | pID /= fst p && mv == pass  = p:updatePlayerPass pID mv ps
