@@ -97,6 +97,18 @@ displayScore stats =
 
 
 {-- /*TODO
+  [ ] Write tests for the checkpoint
+  [ ] Write up for checkpoint
+  [ ] Check unit liberties and single stone liberties
+      [ ] Unit liberties allow a funciton to run and see if all those liberties
+        are captured. A list of stones that are apart of a unit and then
+          checking all of those stones liberties.
+      [ ] True for each positions stone losing all its liberties, false otherwise
+      [ ] If any false, do nothing. If all true, mark all as captured. 
+        [ ] All of the above can be done in a do using <- probably?
+      [ ] Single stone liberties are easy.
+        [ ] If they aren't apart of a unit and all their liberties are gone,
+            then mark as captured!
   [ ] When checking liberties, check to see if the surrounding stones are the
       same color or not. If all (except for the stone we came from) are opposite
       color, then it's captured. Otherwise, it's still free.
