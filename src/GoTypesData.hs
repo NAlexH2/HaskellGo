@@ -17,9 +17,7 @@ type GameState = ([PlayerStats], Board)
 stone :: Stones -> Char
 stone Blank = '_'
 stone Black = 'b'
-stone TBlack = 'B'
 stone White = 'w'
-stone TWhite = 'W'
 
 
 -- //TODO - Comment
