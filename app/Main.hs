@@ -7,7 +7,6 @@ import qualified HaskellGo as HG
 import qualified GoWork as GW
 import qualified GoConsts as GC
 import qualified GoTypesData as GTD
-import Test.HUnit()
 
 main :: IO ()
 main = 
