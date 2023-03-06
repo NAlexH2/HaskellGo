@@ -12,7 +12,7 @@ boardSize = 9
 boardSpaces :: Int
 boardSpaces = (boardSize*boardSize)-1
 
-
+-- //TODO -- Comment add
 rowSpaces :: Int
 rowSpaces = boardSize - 1
 
