@@ -24,21 +24,23 @@ import Test.HUnit
 -- Smaller boards are easier to test. All tests are using a 3x3 board
 testBoardSize :: Int
 testBoardSize = 3
+
 testBoardSpaces :: Int
 testBoardSpaces = testBoardSize*testBoardSize
 
-testState :: ([PlayerStats], Board)
-testState = (testStats1, testBoard1)
-
+-- Empty stats used in the tests
 testStats1 :: [(PlayerID, (Int, Int))]
 testStats1 = [(PB,(0,0)), (PW,(0,0))]
 
+-- Modified PB pass value used to check in updating players pass value
 testStats2 :: [(PlayerID, (Int, Int))]
 testStats2 = [(PB,(0,1)), (PW,(0,0))]
 
+-- Modified PW pass value used to check in updating players pass value
 testStats3 :: [(PlayerID, (Int, Int))]
 testStats3 = [(PB,(0,0)), (PW,(0,1))]
 
+-- A test board used to check a large number of functions
 testBoard1 :: [(Char, (Int, Int))]
 testBoard1 =
   [
@@ -46,7 +48,8 @@ testBoard1 =
     ('w',(0,3)),('b',(0,4)),('_',(0,5)),
     ('b',(0,6)),('_',(0,7)),('_',(0,8))
   ]
-              
+
+-- An empty board used to verify certain situations in tests
 emptyBoardTest :: [(Char, (Int, Int))]
 emptyBoardTest =
   [
@@ -55,18 +58,24 @@ emptyBoardTest =
     ('_',(0,6)),('_',(0,7)),('_',(0,8))
   ]
 
+
+-- The state of the board when testing the larger functions.
+testState :: ([PlayerStats], Board)
+testState = (testStats1, testBoard1)
+
 {-- 
 //TODO Big test, the game "played" itself to ensure stones were captured and score
-was updated and the newboard was produced.
+was updated and the newBoard was produced.
  This cannot be completed yet due to the program still being a WIP.
 --}
 
 
 
 {--
-All other tests
+All other tests, the first few of which are fairly simple.
 --}
 
+-- Test that ensures that currentPlayerStats properly returns expected values
 testCurrentPlayerStats :: Test
 testCurrentPlayerStats = "testCurrentPlayerStats" ~:
   TestList
@@ -75,29 +84,35 @@ testCurrentPlayerStats = "testCurrentPlayerStats" ~:
         currentPlayersStats PW testStats1 ~?= (PW,(0,0))
       ]
 
+-- Test to verify the getter `boardState` returns the proper information
 testBoardState :: Test
 testBoardState = "testBoardState" ~: boardState testState ~?= testBoard1
 
+-- Test to verify the getter for `statsState` returns the proper information
 testStatsState :: Test
 testStatsState = "testStatsState" ~: statsState testState ~?= testStats1
 
+-- Test to verify that emptyBoard (with our test size) returns and matches the
+-- prepared version above
 testEmptyBoard :: Test
-testEmptyBoard = "testEmptyBoard" ~: emptyBoard 3 ~?= emptyBoardTest
+testEmptyBoard = "testEmptyBoard" ~: emptyBoard testBoardSize ~?= emptyBoardTest
 
-{-- For reference for the following tests.
+{-- To reference for the following tests.
     If the position is 2, then the row should be 0.
     Position = 8 row = 2, p = 3 r = 1
     See tests below
-                    0 1 2
-                		1 2 3
-                   _______  Positions avail:
-              0 1 | _ _ _ |   0->2
+
+             index  0 1 2
+      players view  1 2 3
+                   _______  Positions avail from 0:
+              0 1 | _ _ _ |   0->2 
               1 2 | _ _ _ |   3->5
               2 3 | _ _ _ |   6->8
   See the bottom of this file for what the test___' is and justification for
   using it here.
 --}
 
+-- Verify currentRow performs the correct arithmetic for the position passed in 
 testCurrentRow :: Test
 testCurrentRow = "testCurrentRow" ~: 
   TestList
@@ -179,6 +194,7 @@ testLegalMove = "testLegalMove" ~:
         legalMove' testBoard1 (9,9)       ~?= 4
       ]
 
+-- Verify the program has updated the players pass with respect to playerID
 testUpdatePlayerPass :: Test
 testUpdatePlayerPass = "testUpdatePlayerPass" ~:
   TestList
@@ -188,6 +204,7 @@ testUpdatePlayerPass = "testUpdatePlayerPass" ~:
             updatePlayerPass PW (-99,-99) [] ~?= []
           ]
 
+-- Ensure the getPassCount returns the correct value with respect to playerID
 testGetPassCount :: Test
 testGetPassCount = "testGetPassCount" ~:
   TestList 
@@ -196,6 +213,7 @@ testGetPassCount = "testGetPassCount" ~:
         getPassCount PW testState ~?= 0
       ]
 
+-- Ensures rowStates returns the correct string from our testBoard1
 testRowStates :: Test
 testRowStates = "testRowStates" ~:
   TestList
