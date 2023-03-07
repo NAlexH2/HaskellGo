@@ -6,7 +6,7 @@ import GoTypesData
       stone,
       Stones(Blank) )
 import GoConsts (pass, badInput)
-import GoWork 
+import GoWork
     ( boardState,
       currentPlayersStats,
       statsState,
@@ -14,12 +14,15 @@ import GoWork
       getPos,
       updatePlayerPass,
       getPassCount,
-      rowStates
-    ) 
+      rowStates,
+      identifyUnits,
+      getPID
+    )
 
 -- import HaskellGo
 
 import Test.HUnit
+import Data.List ( union, nub, sort )
 
 -- Smaller boards are easier to test. All tests are using a 3x3 board
 testBoardSize :: Int
@@ -47,6 +50,14 @@ testBoard1 =
     ('w',(0,0)),('w',(0,1)),('b',(0,2)),
     ('w',(0,3)),('b',(0,4)),('_',(0,5)),
     ('b',(0,6)),('_',(0,7)),('_',(0,8))
+  ]
+
+testBoard2 :: [(Char, (Int, Int))]
+testBoard2 =
+  [
+    ('b',(0,0)),('b',(0,1)),('b',(0,2)),
+    ('b',(0,3)),('w',(0,4)),('b',(0,5)),
+    ('b',(0,6)),('w',(0,7)),('b',(0,8))
   ]
 
 -- An empty board used to verify certain situations in tests
@@ -114,7 +125,7 @@ testEmptyBoard = "testEmptyBoard" ~: emptyBoard testBoardSize ~?= emptyBoardTest
 
 -- Verify currentRow performs the correct arithmetic for the position passed in 
 testCurrentRow :: Test
-testCurrentRow = "testCurrentRow" ~: 
+testCurrentRow = "testCurrentRow" ~:
   TestList
       [
         currentRow' 0 ~?= 0,
@@ -130,7 +141,7 @@ testCurrentRow = "testCurrentRow" ~:
 -- p = 3 r = 1, r-1 = 0, previous row
 -- p = 0 r = 0, r-1 = -1, doesn't exist but error checking is done elsewhere!
 testPreviousRow :: Test
-testPreviousRow = "testPreviousRow" ~: 
+testPreviousRow = "testPreviousRow" ~:
   TestList
       [
         previousRow' 0 ~?= -1,
@@ -145,7 +156,7 @@ testPreviousRow = "testPreviousRow" ~:
 -- In this case though, 3 is not a valid row but the game error checks for this
 -- elsewhere!!
 testNextRow :: Test
-testNextRow = "testNextRow" ~: 
+testNextRow = "testNextRow" ~:
   TestList
       [
         nextRow' 0 ~?= 1,
@@ -174,7 +185,7 @@ testGetPosition = "testGetPosition" ~:
 
 -- Get the bounds of the current row in our 3x3 grid
 testRowLimit :: Test
-testRowLimit = "testRowLimit" ~: 
+testRowLimit = "testRowLimit" ~:
   TestList
       [
         rowLimit' 0 ~?= (0,2),
@@ -207,7 +218,7 @@ testUpdatePlayerPass = "testUpdatePlayerPass" ~:
 -- Ensure the getPassCount returns the correct value with respect to playerID
 testGetPassCount :: Test
 testGetPassCount = "testGetPassCount" ~:
-  TestList 
+  TestList
       [
         getPassCount PB testState ~?= 0,
         getPassCount PW testState ~?= 0
@@ -223,7 +234,17 @@ testRowStates = "testRowStates" ~:
         rowStates (rowLimit' 2) testBoard1 ~?= " b _ _"
       ]
 
+      --        index  0 1 2
+      -- players view  1 2 3
+      --              _______  Positions avail from 0:
+      --         0 1 | w w b |   0->2 
+      --         1 2 | w b _ |   3->5
+      --         2 3 | b _ _ |   6->8
 
+
+testIdentifyUnits :: Test
+testIdentifyUnits = "testIdentifyUnits" ~:
+  identifyUnits' testBoard1 ~?= [[0,1,3]]
 
 
 -- ***** NOTICE *****
@@ -279,3 +300,96 @@ isOccupied' (b:bs) pos
 -- Quickly get the position in the Board[Position] list being changed
 posCalc' :: (Int, Int) -> Int
 posCalc' (x,y) = (x-1)+(y-1)*testBoardSize
+
+
+identifyUnits' :: Board -> [[Int]]
+identifyUnits' []      = []
+identifyUnits' (b:bs)  =
+  do
+    if curPID == '_' then [] : identifyUnits bs
+    else do
+      let findFriends =
+            [
+              (isSamePID' curPID bs north, north),
+              (isSamePID' curPID bs south, south),
+              (isSamePID' curPID bs east, east),
+              (isSamePID' curPID bs west, west)
+            ]
+      let friends   = filter (\(y,_) -> y == True) findFriends
+      -- let friends'  = map snd friends : identifyUnits' bs
+      let friends'  =
+            if friends /= [] then
+            (curPos : map snd friends) : identifyUnits' bs
+            else [] : identifyUnits' bs
+      let units = map sort . filter (not . null) . map nub $ friends'
+      -- units
+      unitCombinator [] units
+      where
+        curPos  = getPos b
+        curPID  = fst b
+        north   = curPos-testBoardSize
+        south   = curPos+testBoardSize
+        east    = curPos+1
+        west    = curPos-1
+
+-- The list of units identified regrouped into full lists of units based
+-- on overlapping values.
+-- //FIXME -- This might need to be [Int] -> [[Int]] -> [[Int]] instead...
+unitCombinator :: [[Int]] -> [[Int]] -> [[Int]]
+unitCombinator m []        = m `union` []
+unitCombinator m [x]       = if (`elem` m) x then m `union` [x] else m
+unitCombinator m (x:xs:xss)
+--m' is the tracker. it must be passed along recursively, but the situation changes
+-- if there's not a match found. Say m' doesn't have x... or xs... well then
+  -- those should be unioned onto m' as a separate list?
+  -- This probably needs another function to take the x and scan the m' list
+  -- to see if it overlaps anywhere, if it does then union and that's it, otherwise
+  -- keep looking. If no overlaps found, add it to m' as a whole separate group to
+  -- keep an eye on.
+  | (`elem` m) x = do
+      let m' = sort (m `union` [x])
+      m' `union` unitCombinator m' (xs:xss)
+  | any (`elem` xs) x = do
+      let m' = [sort (x `union` xs)]
+      m' `union` unitCombinator m' xss
+  | otherwise         = m `union` unitCombinator [x] (xs:xss)
+
+-- [[0,1,3],[1,2],[2,3,5],[3,6],[4,7],[5,6,8]]
+  --FINALLY A SOLUTION. MERGE ALL LISTS THAT HAVE OVERLAPPING VALUES!
+  --YOU HAVE UNITS THEN!
+
+-- :r
+-- :break unitCombinator
+-- :break 340
+-- :break 341
+-- :break 342
+-- unitCombinator [] [[0,1,3],[1,2],[2,3,5],[3,6],[4,7],[5,6,8]]
+
+-- m `union` [x `union` xs]
+
+
+
+
+
+
+
+-- remaining :: [[Int]] -> [[Int]]
+-- remaining [] = []
+-- remaining (xs:xss) = let (ys, zs) = foldr merge ([], []) xss
+--                       in if elem (head xs) ys || elem (head xs) zs then remaining xss
+--                          else xs : remaining xss
+
+-- merge :: [Int] -> ([Int], [Int]) -> ([Int], [Int])
+-- merge [] (ys, zs) = (ys, zs)
+-- merge (x:xs) (ys, zs)
+--   | elem x ys = merge xs (x:ys, zs)
+--   | elem x zs = merge xs (ys, x:zs)
+--   | otherwise = merge xs (ys, zs)
+
+isSamePID' :: Char -> Board -> Int -> Bool
+isSamePID' _ [] _ = False
+isSamePID' pID (b:bs) pos
+  | pos < 0 || pos > testBoardSpaces  = False
+  | pos /= getPos b                                 = isSamePID' pID bs pos
+  | pos == getPos b && pID == getPID b              = True
+  | otherwise                                       = False
