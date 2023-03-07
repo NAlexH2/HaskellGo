@@ -98,7 +98,7 @@ displayScore stats =
 
 {-- /*TODO
   [ ] Check unit liberties and single stone liberties
-      [ ] Unit liberties allow a funciton to run and see if all those liberties
+      [ ] Unit liberties allow a function to run and see if all those liberties
         are captured. A list of stones that are apart of a unit and then
           checking all of those stones liberties.
       [ ] True for each positions stone losing all its liberties, false otherwise
