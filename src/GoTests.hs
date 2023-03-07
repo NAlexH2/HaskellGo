@@ -60,6 +60,23 @@ testBoard2 =
     ('b',(0,6)),('w',(0,7)),('b',(0,8))
   ]
 
+testBoard3 :: [(Char, (Int, Int))]
+testBoard3 =
+  [
+    ('b',(0,0)),('b',(0,1)),('b',(0,2)),
+    ('b',(0,3)),('_',(0,4)),('_',(0,5)),
+    ('b',(0,6)),('_',(0,7)),('_',(0,8))
+  ]
+
+testBoard4 :: [(Char, (Int, Int))]
+testBoard4 =
+  [
+    ('b',(0,0)),('b',(0,1)),('b',(0,2)),
+    ('b',(0,3)),('_',(0,4)),('_',(0,5)),
+    ('_',(0,6)),('w',(0,7)),('w',(0,8))
+  ]
+
+
 -- An empty board used to verify certain situations in tests
 emptyBoardTest :: [(Char, (Int, Int))]
 emptyBoardTest =
@@ -247,6 +264,9 @@ testIdentifyUnits = "testIdentifyUnits" ~:
   identifyUnits' testBoard1 ~?= [[0,1,3]]
 
 
+
+
+
 -- ***** NOTICE *****
 -- The following functions are almost exactly the same as the the implemented
 -- version but to properly test them, they must exist in this file utilizing
@@ -315,15 +335,14 @@ identifyUnits' (b:bs)  =
               (isSamePID' curPID bs east, east),
               (isSamePID' curPID bs west, west)
             ]
-      let friends   = filter (\(y,_) -> y == True) findFriends
+      let friends   = filter fst findFriends
       -- let friends'  = map snd friends : identifyUnits' bs
       let friends'  =
             if friends /= [] then
             (curPos : map snd friends) : identifyUnits' bs
             else [] : identifyUnits' bs
       let units = map sort . filter (not . null) . map nub $ friends'
-      -- units
-      unitCombinator [] units
+      map sort . filter (not . null) . map nub $ uCombine [] units
       where
         curPos  = getPos b
         curPID  = fst b
@@ -335,10 +354,27 @@ identifyUnits' (b:bs)  =
 -- The list of units identified regrouped into full lists of units based
 -- on overlapping values.
 -- //FIXME -- This might need to be [Int] -> [[Int]] -> [[Int]] instead...
-unitCombinator :: [[Int]] -> [[Int]] -> [[Int]]
-unitCombinator m []        = m `union` []
-unitCombinator m [x]       = if (`elem` m) x then m `union` [x] else m
-unitCombinator m (x:xs:xss)
+uCombine :: [[Int]] -> [[Int]] -> [[Int]]
+uCombine []     []      = []
+uCombine (m:_)  []      = [m] `union` []
+uCombine []     (x:xs)  = uCombine [[] `union` x] xs
+uCombine m  [x]         = uCombine' m x
+uCombine (m:ms) (x:xs)  | null m = do
+                          let m' = m `union` x
+                          m' : uCombine (m':ms) xs
+                        | any (`elem` m) x  = do
+                          let m' = m `union` x
+                          uCombine (m':ms) xs
+                        | otherwise = do
+                          let ms' = ms `union` [x]
+                          uCombine (m:ms'++ms) xs
+
+uCombine' :: [[Int]] -> [Int] -> [[Int]]
+uCombine' [] [] = []
+uCombine' [] x  = [x]
+uCombine' (m:ms) x  | any (`elem` m) x  = m `union` x : ms
+                    | otherwise         = m : uCombine' ms x
+
 --m' is the tracker. it must be passed along recursively, but the situation changes
 -- if there's not a match found. Say m' doesn't have x... or xs... well then
   -- those should be unioned onto m' as a separate list?
@@ -346,13 +382,13 @@ unitCombinator m (x:xs:xss)
   -- to see if it overlaps anywhere, if it does then union and that's it, otherwise
   -- keep looking. If no overlaps found, add it to m' as a whole separate group to
   -- keep an eye on.
-  | (`elem` m) x = do
-      let m' = sort (m `union` [x])
-      m' `union` unitCombinator m' (xs:xss)
-  | any (`elem` xs) x = do
-      let m' = [sort (x `union` xs)]
-      m' `union` unitCombinator m' xss
-  | otherwise         = m `union` unitCombinator [x] (xs:xss)
+  -- | (`elem` m) x = do
+  --     let m' = sort (m `union` [x])
+  --     m' `union` unitCombinator m' (xs:xss)
+  -- | any (`elem` xs) x = do
+  --     let m' = [sort (x `union` xs)]
+  --     m' `union` unitCombinator m' xss
+  -- | otherwise         = m `union` unitCombinator [x] (xs:xss)
 
 -- [[0,1,3],[1,2],[2,3,5],[3,6],[4,7],[5,6,8]]
   --FINALLY A SOLUTION. MERGE ALL LISTS THAT HAVE OVERLAPPING VALUES!
