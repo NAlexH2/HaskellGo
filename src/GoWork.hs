@@ -15,6 +15,7 @@ import qualified GHC.IO.Exception
 import GHC.IO.Handle.FD ( stdout )
 import Data.List.Utils ( contains )
 import Data.Char ( toLower, isDigit )
+import Data.List (nub, sort)
 
 
 -- Simple utility function to clear the screen. At least on Linux type systems.
@@ -89,6 +90,10 @@ nextRow i = (i `div` boardSize)+1
 getPos :: Position -> Int
 getPos pos = snd (snd pos)
 
+-- //TODO - Comment
+getPID :: Position -> Char
+getPID pos = fst pos
+
 -- Calculates start and end positions of the row passed in
 -- with the given boardSize provided at the top in GoConsts.hs
 rowLimit :: Int -> (Int, Int)
@@ -154,71 +159,6 @@ isOccupied (b:bs) pos
   | not $ null b && null bs                 = False
   | otherwise                               = False
 
-
--- Identify the positions on the board which are to be "captured" when
--- building a new board.
--- //TODO - finish this up when you've decided on the approach to identify...
---          Literally everything it feels like. Reference your notes in the
---          TODO in HaskellGo.hs
-capturedStones :: PlayerID -> GameState -> [Int]
-capturedStones p game = undefined
-  where
-    b = boardState game
-    s = statsState game
-
-
--- Traverse the entire board identifying every stone that is apart of a unit.
--- A unit is any colored stone with adjacent SAME COLORED stones.
-identifyUnits :: Board -> [Int]
-identifyUnits board = undefined
-
-identifyUnits' :: PlayerID -> Board -> [Int]
-identifyUnits' pID board = undefined
-
-
--- check the current position on the board to see if is to be considered
--- captured. 
-checkLiberties :: Board -> Int -> Bool
-checkLiberties board pos = and bools
-  where
-    north = pos-boardSize
-    south = pos+boardSize
-    east = pos+1
-    west = pos-1
-    bools =
-      [
-        occupiedNorth board north (rowLimit (previousRow pos)),
-        occupiedSouth board south (rowLimit (nextRow pos)),
-        occupiedEast board east (rowLimit (currentRow pos)),
-        occupiedWest board west (rowLimit (currentRow pos))
-      ]
-
-
--- Check the respective cardinals for the current position on the board for
--- each of the following functions. If occupied then TRUE, otherwise FALSE.
--- If it is occupied, that liberty is no longer available. This is important
--- for determining captured stones.
-occupiedNorth :: Board -> Int -> (Int, Int) -> Bool
-occupiedNorth board pos' (s, _) | s < boardSpaces       = True
-                                | isOccupied board pos' = True
-                                | otherwise             = False
-
-occupiedSouth :: Board -> Int -> (Int, Int) -> Bool
-occupiedSouth board pos' (_, e) | e > boardSpaces       = True
-                                | isOccupied board pos' = True
-                                | otherwise             = False
-
-occupiedEast :: Board -> Int -> (Int, Int) -> Bool
-occupiedEast board pos' (_, e)  | pos' > e              = True
-                                | isOccupied board pos' = True
-                                | otherwise             = False
-
-occupiedWest :: Board -> Int -> (Int, Int) -> Bool
-occupiedWest board pos' (s, _)  | pos' < s              = True
-                                | isOccupied board pos' = True
-                                | otherwise             = False
-
-
 -- Performs pattern matching to ensure we update the correct players pass stat
 updatePlayerPass :: PlayerID -> (Int, Int) -> [PlayerStats] -> [PlayerStats]
 updatePlayerPass _ _ []         = []
@@ -266,3 +206,107 @@ rowStates (s,e) (b:bs)
   | otherwise           =  [] -- rowStates (s+1,e) bs //TODO What is this comment for?
 
 
+-- This is the start of the capture process. It will check single stones, units
+-- and do this for both black and white stones. Everyone gets looked at and
+-- assessed.
+theCaptureCode :: Board -> [Int]
+theCaptureCode board = undefined
+
+
+-- Identify the positions on the board which are to be "captured" when
+-- building a new board.
+-- //TODO - finish this up when you've decided on the approach to identify...
+--          Literally everything it feels like. Reference your notes in the
+--          TODO in HaskellGo.hs
+capturedStones :: PlayerID -> GameState -> [Int]
+capturedStones p game = undefined
+  where
+    b = boardState game
+    s = statsState game
+
+
+-- Traverse the entire board identifying every stone that is apart of a unit.
+-- A unit is any colored stone with adjacent SAME COLORED stones.
+identifyUnits :: Board -> [[Int]]
+identifyUnits []      = []
+identifyUnits (b:bs)  =
+  do
+    if curPID == stone Blank then [] : identifyUnits bs
+    else do
+      let findFriends =
+            [
+              (isSamePID curPID bs north, north),
+              (isSamePID curPID bs south, south),
+              (isSamePID curPID bs east, east),
+              (isSamePID curPID bs west, west)
+            ]
+      let friends = filter (\(y,_) -> y == True) findFriends
+      let friends' = map snd friends : identifyUnits bs
+      map (nub . sort) friends'
+  where
+    curPos = getPos b
+    curPID = fst b
+    north = curPos-boardSize
+    south = curPos+boardSize
+    east  = curPos+1
+    west  = curPos-1
+
+
+isSamePID :: Char -> Board -> Int -> Bool
+isSamePID _ [] _ = False
+isSamePID pID (b:bs) pos
+  | pos < boardSpaces || pos > boardSpaces  = False
+  | pos /= getPos b                         = isSamePID pID bs pos
+  | pos == getPos b && pID == fst b         = True
+  | otherwise                               = False
+
+
+-- identifyUnits' :: PlayerID -> Board -> [Int]
+-- identifyUnits' pID board = 
+
+
+identifySingles :: PlayerID -> Board -> [Int]
+identifySingles pID board = undefined
+
+
+-- check the current position on the board to see if is to be considered
+-- captured. 
+checkLiberties :: Board -> Int -> Bool
+checkLiberties board pos = and bools
+  where
+    north = pos-boardSize
+    south = pos+boardSize
+    east  = pos+1
+    west  = pos-1
+    bools =
+      [
+        occupiedNorth board north (rowLimit (previousRow pos)),
+        occupiedSouth board south (rowLimit (nextRow pos)),
+        occupiedEast board east (rowLimit (currentRow pos)),
+        occupiedWest board west (rowLimit (currentRow pos))
+      ]
+
+
+-- Check the respective cardinals for the current position on the board for
+-- each of the following functions. If occupied then TRUE, otherwise FALSE.
+-- If it is occupied, that liberty is no longer available. This is important
+-- for determining captured stones.
+occupiedNorth :: Board -> Int -> (Int, Int) -> Bool
+occupiedNorth board pos' (s, _) | s < boardSpaces       = True
+                                | isOccupied board pos' = True
+                                | otherwise             = False
+
+occupiedSouth :: Board -> Int -> (Int, Int) -> Bool
+occupiedSouth board pos' (_, e) | e > boardSpaces       = True
+                                | isOccupied board pos' = True
+                                | otherwise             = False
+
+occupiedEast :: Board -> Int -> (Int, Int) -> Bool
+occupiedEast board pos' (_, e)  | pos' > e              = True
+                                | isOccupied board pos' = True
+                                | otherwise             = False
+
+occupiedWest :: Board -> Int -> (Int, Int) -> Bool
+occupiedWest board pos' (s, _)  | pos' < s              = True
+                                | isOccupied board pos' = True
+                                | otherwise             = False
