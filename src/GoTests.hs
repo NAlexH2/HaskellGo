@@ -1,35 +1,13 @@
 module GoTests where
 import GoTypesData
-    ( Board,
-      PlayerStats,
-      PlayerID(..),
-      stone,
-      Stones(Blank) )
-import GoConsts (pass, badInput)
 import GoWork
-    ( boardState,
-      currentPlayersStats,
-      statsState,
-      emptyBoard,
-      getPos,
-      updatePlayerPass,
-      getPassCount,
-      rowStates,
-      identifyUnits,
-      getPID
-    )
-
--- import HaskellGo
-
+import GoCapture
 import Test.HUnit
-import Data.List ( union, nub, sort )
+
 
 -- Smaller boards are easier to test. All tests are using a 3x3 board
-testBoardSize :: Int
-testBoardSize = 3
-
-testBoardSpaces :: Int
-testBoardSpaces = testBoardSize*testBoardSize
+tBSize :: Int
+tBSize = 3
 
 -- Empty stats used in the tests
 testStats1 :: [(PlayerID, (Int, Int))]
@@ -48,32 +26,40 @@ testBoard1 :: [(Char, (Int, Int))]
 testBoard1 =
   [
     ('w',(0,0)),('w',(0,1)),('b',(0,2)),
-    ('w',(0,3)),('b',(0,4)),('_',(0,5)),
-    ('b',(0,6)),('_',(0,7)),('_',(0,8))
+    ('w',(1,3)),('b',(1,4)),('_',(1,5)),
+    ('b',(2,6)),('_',(2,7)),('_',(2,8))
   ]
 
 testBoard2 :: [(Char, (Int, Int))]
 testBoard2 =
   [
     ('b',(0,0)),('b',(0,1)),('b',(0,2)),
-    ('b',(0,3)),('w',(0,4)),('b',(0,5)),
-    ('b',(0,6)),('w',(0,7)),('b',(0,8))
+    ('b',(1,3)),('w',(1,4)),('b',(1,5)),
+    ('b',(2,6)),('w',(2,7)),('b',(2,8))
   ]
 
 testBoard3 :: [(Char, (Int, Int))]
 testBoard3 =
   [
     ('b',(0,0)),('b',(0,1)),('b',(0,2)),
-    ('b',(0,3)),('_',(0,4)),('_',(0,5)),
-    ('b',(0,6)),('_',(0,7)),('_',(0,8))
+    ('b',(1,3)),('_',(1,4)),('_',(1,5)),
+    ('b',(2,6)),('_',(2,7)),('_',(2,8))
   ]
 
 testBoard4 :: [(Char, (Int, Int))]
 testBoard4 =
   [
     ('b',(0,0)),('b',(0,1)),('b',(0,2)),
-    ('b',(0,3)),('_',(0,4)),('_',(0,5)),
-    ('_',(0,6)),('w',(0,7)),('w',(0,8))
+    ('b',(1,3)),('_',(1,4)),('_',(1,5)),
+    ('_',(2,6)),('w',(2,7)),('w',(2,8))
+  ]
+
+testBoard5 :: [(Char, (Int, Int))]
+testBoard5 =
+  [
+    ('_',(0,0)),('b',(0,1)),('_',(0,2)),
+    ('w',(1,3)),('_',(1,4)),('b',(1,5)),
+    ('_',(2,6)),('w',(2,7)),('_',(2,8))
   ]
 
 
@@ -82,8 +68,8 @@ emptyBoardTest :: [(Char, (Int, Int))]
 emptyBoardTest =
   [
     ('_',(0,0)),('_',(0,1)),('_',(0,2)),
-    ('_',(0,3)),('_',(0,4)),('_',(0,5)),
-    ('_',(0,6)),('_',(0,7)),('_',(0,8))
+    ('_',(1,3)),('_',(1,4)),('_',(1,5)),
+    ('_',(2,6)),('_',(2,7)),('_',(2,8))
   ]
 
 
@@ -123,7 +109,7 @@ testStatsState = "testStatsState" ~: statsState testState ~?= testStats1
 -- Test to verify that emptyBoard (with our test size) returns and matches the
 -- prepared version above
 testEmptyBoard :: Test
-testEmptyBoard = "testEmptyBoard" ~: emptyBoard testBoardSize ~?= emptyBoardTest
+testEmptyBoard = "testEmptyBoard" ~: emptyBoard tBSize ~?= emptyBoardTest
 
 {-- To reference for the following tests.
     If the position is 2, then the row should be 0.
@@ -145,12 +131,12 @@ testCurrentRow :: Test
 testCurrentRow = "testCurrentRow" ~:
   TestList
       [
-        currentRow' 0 ~?= 0,
-        currentRow' 2 ~?= 0,
-        currentRow' 3 ~?= 1,
-        currentRow' 5 ~?= 1,
-        currentRow' 6 ~?= 2,
-        currentRow' 8 ~?= 2
+        currentRow tBSize 0 ~?= 0,
+        currentRow tBSize 2 ~?= 0,
+        currentRow tBSize 3 ~?= 1,
+        currentRow tBSize 5 ~?= 1,
+        currentRow tBSize 6 ~?= 2,
+        currentRow tBSize 8 ~?= 2
       ]
 
 -- Using position on the board again, get the previous row by subtracting
@@ -161,12 +147,12 @@ testPreviousRow :: Test
 testPreviousRow = "testPreviousRow" ~:
   TestList
       [
-        previousRow' 0 ~?= -1,
-        previousRow' 2 ~?= -1,
-        previousRow' 3 ~?= 0,
-        previousRow' 5 ~?= 0,
-        previousRow' 6 ~?= 1,
-        previousRow' 8 ~?= 1
+        previousRow tBSize 0 ~?= -1,
+        previousRow tBSize 2 ~?= -1,
+        previousRow tBSize 3 ~?= 0,
+        previousRow tBSize 5 ~?= 0,
+        previousRow tBSize 6 ~?= 1,
+        previousRow tBSize 8 ~?= 1
       ]
 
 -- Similar to above but adding 1 instead of subtracting.
@@ -176,12 +162,12 @@ testNextRow :: Test
 testNextRow = "testNextRow" ~:
   TestList
       [
-        nextRow' 0 ~?= 1,
-        nextRow' 2 ~?= 1,
-        nextRow' 3 ~?= 2,
-        nextRow' 5 ~?= 2,
-        nextRow' 6 ~?= 3, --DNE in test. Checked elsewhere!
-        nextRow' 8 ~?= 3  --DNE in test. Checked elsewhere!
+        nextRow tBSize 0 ~?= 1,
+        nextRow tBSize 2 ~?= 1,
+        nextRow tBSize 3 ~?= 2,
+        nextRow tBSize 5 ~?= 2,
+        nextRow tBSize 6 ~?= 3, --DNE in test. Checked elsewhere!
+        nextRow tBSize 8 ~?= 3  --DNE in test. Checked elsewhere!
       ]
 
 -- Get the position in the list based on the position set being analyzed
@@ -205,21 +191,36 @@ testRowLimit :: Test
 testRowLimit = "testRowLimit" ~:
   TestList
       [
-        rowLimit' 0 ~?= (0,2),
-        rowLimit' 1 ~?= (3,5),
-        rowLimit' 2 ~?= (6,8)
+        rowLimit tBSize 0 ~?= (0,2),
+        rowLimit tBSize 1 ~?= (3,5),
+        rowLimit tBSize 2 ~?= (6,8)
       ]
+
+-- Check to ensure the formula for posCalc is operating correctly for various
+-- board sizes and positions. User is required to enter in x,y values > 0.
+testPosCalc :: Test
+testPosCalc = "testPosCalc" ~:
+  TestList
+    [
+      posCalc (9,9) 9 ~?= 80,
+      posCalc (2,3) 3 ~?= 7,
+      posCalc (3,3) 3 ~?= 8,
+      posCalc (1,1) 3 ~?= 0,
+      posCalc (4,8) 19 ~?= 136,
+      posCalc (1,1) 2 ~?= 0,
+      posCalc (2,1) 2 ~?= 1
+    ]
 
 -- Check if the move the player made is legal or not using testBoard1
 testLegalMove :: Test
 testLegalMove = "testLegalMove" ~:
   TestList
       [
-        legalMove' testBoard1 (-99, -99)  ~?= 1,
-        legalMove' testBoard1 (3,3)       ~?= 1,
-        legalMove' testBoard1 (-1,-1)     ~?= 2,
-        legalMove' testBoard1 (1,1)       ~?= 3,
-        legalMove' testBoard1 (9,9)       ~?= 4
+        legalMove tBSize testBoard1 (-99, -99)  ~?= 1,
+        legalMove tBSize testBoard1 (3,3)       ~?= 1,
+        legalMove tBSize testBoard1 (-1,-1)     ~?= 2,
+        legalMove tBSize testBoard1 (1,1)       ~?= 3,
+        legalMove tBSize testBoard1 (9,9)       ~?= 4
       ]
 
 -- Verify the program has updated the players pass with respect to playerID
@@ -246,189 +247,27 @@ testRowStates :: Test
 testRowStates = "testRowStates" ~:
   TestList
       [
-        rowStates (rowLimit' 0) testBoard1 ~?= " w w b",
-        rowStates (rowLimit' 1) testBoard1 ~?= " w b _",
-        rowStates (rowLimit' 2) testBoard1 ~?= " b _ _"
+        rowStates (rowLimit tBSize 0) testBoard1 ~?= " w w b",
+        rowStates (rowLimit tBSize 1) testBoard1 ~?= " w b _",
+        rowStates (rowLimit tBSize 2) testBoard1 ~?= " b _ _"
       ]
 
       --        index  0 1 2
       -- players view  1 2 3
       --              _______  Positions avail from 0:
-      --         0 1 | w w b |   0->2 
+      --         0 1 | w w b |   0->2
       --         1 2 | w b _ |   3->5
       --         2 3 | b _ _ |   6->8
 
-
+-- Test to see if the identify units works properly. This is only for units,
+-- and does not work for single stones. Examining single stones is easily done
+-- with functions already written.
 testIdentifyUnits :: Test
 testIdentifyUnits = "testIdentifyUnits" ~:
-  identifyUnits' testBoard1 ~?= [[0,1,3]]
-
-
-
-
-
--- ***** NOTICE *****
--- The following functions are almost exactly the same as the the implemented
--- version but to properly test them, they must exist in this file utilizing
--- the test board size I've provided that's 3x3
-
-rowLimit' :: Int -> (Int, Int)
-rowLimit' row = (row*testBoardSize, row*testBoardSize+(testBoardSize-1))
-
--- This is the only one slightly changed due to a system function attempting
--- to be called
-emptyBoard' :: Int -> Board
-emptyBoard' n  =
-  do
-    [(stone Blank, (r,i)) | i <- [0..(n*n)-1], let r = currentRow' i]
-    -- //TODO if i/boardsize /= whole number then r+1 else r
-
-
--- //TODO - Comment
-currentRow' :: Int  -> Int
-currentRow' i = i `div` testBoardSize
-
--- //TODO - Comment
-previousRow' :: Int -> Int
-previousRow' i = (i `div` testBoardSize)-1
-
--- //TODO - Comment
-nextRow' :: Int -> Int
-nextRow' i = (i `div` testBoardSize)+1
-
-
--- Checks to see if the user made a legal move on the current gameboard
-legalMove' :: Board -> (Int, Int) -> Int
-legalMove' board move | move == pass            = 1
-                      | move == badInput        = 2
-                      | isOccupied' board place = 3
-                      | place > testBoardSpaces = 4
-                      | otherwise               = 1
-    where
-      place = posCalc' move
-
--- Checks to see if the position passed in is occupied by another player
-isOccupied' :: Board -> Int -> Bool
-isOccupied' [] _                            = error "Empty game board detected"
-isOccupied' (b:bs) pos
-  | pos > testBoardSpaces                   = False
-  | pos == getPos b && fst b /= stone Blank = True
-  | pos /= getPos b                         = isOccupied' bs pos
-  | not $ null b && null bs                 = False
-  | otherwise                               = False
-
--- Quickly get the position in the Board[Position] list being changed
-posCalc' :: (Int, Int) -> Int
-posCalc' (x,y) = (x-1)+(y-1)*testBoardSize
-
-
-identifyUnits' :: Board -> [[Int]]
-identifyUnits' []      = []
-identifyUnits' (b:bs)  =
-  do
-    if curPID == '_' then [] : identifyUnits bs
-    else do
-      let findFriends =
-            [
-              (isSamePID' curPID bs north, north),
-              (isSamePID' curPID bs south, south),
-              (isSamePID' curPID bs east, east),
-              (isSamePID' curPID bs west, west)
-            ]
-      let friends   = filter fst findFriends
-      -- let friends'  = map snd friends : identifyUnits' bs
-      let friends'  =
-            if friends /= [] then
-            (curPos : map snd friends) : identifyUnits' bs
-            else [] : identifyUnits' bs
-      let units = map sort . filter (not . null) . map nub $ friends'
-      map sort . filter (not . null) . map nub $ uCombine [] units
-      -- //FIXME not traversing the rest of the board it looks like...
-      -- recursively call this function appending to the list generated by
-      -- line 345 probably
-      where
-        curPos  = getPos b
-        curPID  = fst b
-        north   = curPos-testBoardSize
-        south   = curPos+testBoardSize
-        east    = curPos+1
-        west    = curPos-1
-
--- The list of units identified regrouped into full lists of units based
--- on overlapping values.
--- //FIXME -- This might need to be [Int] -> [[Int]] -> [[Int]] instead...
-uCombine :: [[Int]] -> [[Int]] -> [[Int]]
-uCombine []     []      = []
-uCombine (m:_)  []      = [m] `union` []
-uCombine []     (x:xs)  = uCombine [[] `union` x] xs
-uCombine m  [x]         = uCombine' m x
-uCombine (m:ms) (x:xs)  | null m = do
-                          let m' = m `union` x
-                          m' : uCombine (m':ms) xs
-                        | any (`elem` m) x  = do
-                          let m' = m `union` x
-                          uCombine (m':ms) xs
-                        | otherwise = do
-                          let ms' = ms `union` [x]
-                          uCombine (m:ms'++ms) xs
-
-uCombine' :: [[Int]] -> [Int] -> [[Int]]
-uCombine' [] [] = []
-uCombine' [] x  = [x]
-uCombine' (m:ms) x  | any (`elem` m) x  = m `union` x : ms
-                    | otherwise         = m : uCombine' ms x
-
---m' is the tracker. it must be passed along recursively, but the situation changes
--- if there's not a match found. Say m' doesn't have x... or xs... well then
-  -- those should be unioned onto m' as a separate list?
-  -- This probably needs another function to take the x and scan the m' list
-  -- to see if it overlaps anywhere, if it does then union and that's it, otherwise
-  -- keep looking. If no overlaps found, add it to m' as a whole separate group to
-  -- keep an eye on.
-  -- | (`elem` m) x = do
-  --     let m' = sort (m `union` [x])
-  --     m' `union` unitCombinator m' (xs:xss)
-  -- | any (`elem` xs) x = do
-  --     let m' = [sort (x `union` xs)]
-  --     m' `union` unitCombinator m' xss
-  -- | otherwise         = m `union` unitCombinator [x] (xs:xss)
-
--- [[0,1,3],[1,2],[2,3,5],[3,6],[4,7],[5,6,8]]
-  --FINALLY A SOLUTION. MERGE ALL LISTS THAT HAVE OVERLAPPING VALUES!
-  --YOU HAVE UNITS THEN!
-
--- :r
--- :break unitCombinator
--- :break 340
--- :break 341
--- :break 342
--- unitCombinator [] [[0,1,3],[1,2],[2,3,5],[3,6],[4,7],[5,6,8]]
-
--- m `union` [x `union` xs]
-
-
-
-
-
-
-
--- remaining :: [[Int]] -> [[Int]]
--- remaining [] = []
--- remaining (xs:xss) = let (ys, zs) = foldr merge ([], []) xss
---                       in if elem (head xs) ys || elem (head xs) zs then remaining xss
---                          else xs : remaining xss
-
--- merge :: [Int] -> ([Int], [Int]) -> ([Int], [Int])
--- merge [] (ys, zs) = (ys, zs)
--- merge (x:xs) (ys, zs)
---   | elem x ys = merge xs (x:ys, zs)
---   | elem x zs = merge xs (ys, x:zs)
---   | otherwise = merge xs (ys, zs)
-
-isSamePID' :: Char -> Board -> Int -> Bool
-isSamePID' _ [] _ = False
-isSamePID' pID (b:bs) pos
-  | pos < 0 || pos > testBoardSpaces  = False
-  | pos /= getPos b                                 = isSamePID' pID bs pos
-  | pos == getPos b && pID == getPID b              = True
-  | otherwise                                       = False
+  TestList
+      [
+        identifyUnits tBSize testBoard1 ~?= [[0,1,3]],
+        identifyUnits tBSize testBoard2 ~?= [[0,1,2,3,5,6,8],[4,7]],
+        identifyUnits tBSize testBoard3 ~?= [[0,1,2,3,6]],
+        identifyUnits tBSize testBoard4 ~?= [[0,1,2,3],[7,8]]
+      ]
