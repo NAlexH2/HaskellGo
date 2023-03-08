@@ -144,7 +144,7 @@ legalMove bdSz board move
 
 -- Checks to see if the position passed in is occupied by another player
 isOccupied :: Int -> Board -> Int -> Bool
-isOccupied _ [] _                             = error "Empty game board detected"
+isOccupied _ [] _                           = False
 isOccupied bdSz (b:bs) pos
   | pos > boardSpaces bdSz                  = False
   | pos == getPos b && fst b /= stone Blank = True
