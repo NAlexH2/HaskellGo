@@ -5,6 +5,7 @@
 module HaskellGo where
 
 import GoWork
+import GoCapture
 import GoTypesData
 import GoConsts
 import Text.Printf ( printf )
@@ -15,6 +16,8 @@ import Text.Printf ( printf )
 haskellGo :: GameState -> PlayerID -> IO ()
 haskellGo currentGame pID =
   do
+    let board = boardState currentGame
+    let stats = statsState currentGame
     -- //HACK - Remove these in final version
     -- print ((length board)-1)
     -- print (board !! 80)
@@ -23,14 +26,14 @@ haskellGo currentGame pID =
     printf "To make your move, simply type an x and y that is on the grid. "
     printf "Like so:\n'x y: 9 9'\n\n"
     let pID' = turnToggle pID
-    displayState currentGame
+    displayState bdSz currentGame
     printf "It is player %s's turn...\n" (currentPlayer pID')
     putStr "x y: "
     move <- getCoordinates
     -- //HACK - remove in final version
     -- print (show (statsState currentGame))
     -- uncurry (printf "\n\n\n(%d,%d) %d\n\n\n") move (posCalc move)
-    let legality = legalMove (boardState currentGame) move
+    let legality = legalMove bdSz board move
     if legality > 1 then do
       _ <- clearScreen
       -- //HACK - Remove these in final version
@@ -40,14 +43,16 @@ haskellGo currentGame pID =
       haskellGo currentGame pID''
     else do
       -- //TODO see if player passed 2 times, end game if so.
-      let stats' = updatePlayerPass pID' move (statsState currentGame)
+      let stats' = updatePlayerPass pID' move stats
       -- //HACK - Remove these in final version
       -- uncurry (printf "\n\n\n(%d,%d)\n\n\n") move
       let captured = capturedStones pID' currentGame
       let newStats = updateStats pID' stats' captured
-      let newBoard = makeBoard pID' (boardState currentGame) (0, posCalc move)
-      let currentGame' = updateGame newStats newBoard
+      let newBd = makeBoard bdSz pID' board (0, posCalc move bdSz)
+      let currentGame' = updateGame newStats newBd
       haskellGo currentGame' pID'
+  where
+    bdSz = boardSize
 
 
 -- Error handling for the game. Allows user to correct mistakes
@@ -59,11 +64,11 @@ errorBadMove e  | e == 2      = "Received invalid input from the user."
 
 
 -- Displays the current state of the game. 
-displayState :: GameState -> IO ()
-displayState gameState =
+displayState :: Int -> GameState -> IO ()
+displayState bdSz gameState =
   do
     displayTopRows
-    displayEachRow row (boardState gameState)
+    displayEachRow bdSz row (boardState gameState)
     displayScore (statsState gameState)
       where
           row = 1
@@ -75,13 +80,13 @@ displayTopRows = printf "  x  1 2 3 4 5 6 7 8 9\ny   __________________"
 
 
 -- Displays most up to date state of the board as to be human readable.
-displayEachRow :: Int -> Board -> IO ()
-displayEachRow row board =
-    if row < boardSize+1 then
+displayEachRow :: Int -> Int -> Board -> IO ()
+displayEachRow bdSz row board =
+    if row < bdSz+1 then
       do
-        let x = show row ++ " | " ++ rowStates (rowLimit row) board
+        let x = show row ++ " | " ++ rowStates (rowLimit bdSz row) board
         printf "\n%s" x
-        displayEachRow (row+1) board
+        displayEachRow bdSz (row+1) board
     else printf "\n"
 
 
@@ -124,10 +129,10 @@ displayScore stats =
   *** COMPLETED TASKS ***
   [x] Write up for checkpoint
   [x] Write tests for the checkpoint
-  [x] Use a GameState versus seperate vars to track the ENTIRE game
+  [x] Use a GameState versus separate vars to track the ENTIRE game
       [x] Update all required members before making new state first
   [x] Implement row addition to position? Or create a working calc for any
-      value... I like this option. `= floor (pos/boardsize)` ?
+      value... I like this option. `= floor (pos/boardSize)` ?
       [x] wound up realizing simplified version! Easy done.
   [x] Check if move is valid
   [x] Proper state and display
