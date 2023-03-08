@@ -5,6 +5,7 @@ import GoWork
 import GoConsts
 import Data.List ( union, nub, sort )
 
+
 -- This is the start of the capture process. It will check single stones, units
 -- and do this for both black and white stones. Everyone gets looked at and
 -- assessed.
@@ -23,10 +24,27 @@ capturedStones p game = undefined
     b = boardState game
     s = statsState game
 
+
+-- Analyzes a board for any single stones that might be captured.
+-- Takes... board size, unit of stones, a PlayerID and two boards:
+-- one to traverse and compare and one to reference when examined in other
+-- functions against the current position.
+cappedSingles :: Int -> [[Int]] -> PlayerID -> Board -> Board -> [Int]
+cappedSingles _ _ _ [] _            = []
+cappedSingles bdSz units pID (b:bs) ref
+  | (`elem` units) [pos]            = cappedSingles bdSz units pID bs ref
+  | cPID == pStone pID && libCheck  = pos : cappedSingles bdSz units pID bs ref
+  | otherwise                       = cappedSingles bdSz units pID bs ref
+  where
+    pos       = getPos b
+    cPID      = getPID b
+    libCheck  = occupiedLiberties bdSz ref pos
+
+
 -- check the current position on the board to see if is to be considered
--- captured. 
-checkLiberties :: Int -> Board -> Int -> Bool
-checkLiberties bdSz board pos = and bools
+-- captured. If all bools are true, return True, otherwise False
+occupiedLiberties :: Int -> Board -> Int -> Bool
+occupiedLiberties bdSz board pos = and bools
   where
     north = pos-bdSz
     south = pos+bdSz
@@ -39,6 +57,7 @@ checkLiberties bdSz board pos = and bools
         occupiedEast bdSz board east (rowLimit bdSz (currentRow bdSz pos)),
         occupiedWest bdSz board west (rowLimit bdSz (currentRow bdSz pos))
       ]
+
 
 -- Check the respective cardinals for the current position on the board for
 -- each of the following functions. If occupied then TRUE, otherwise FALSE.
@@ -55,17 +74,20 @@ occupiedSouth bdSz board pos' (_, e)  | e > boardSpaces bdSz        = True
                                       | otherwise                   = False
 
 occupiedEast :: Int -> Board -> Int -> (Int, Int) -> Bool
-occupiedEast bdSz board pos' (_, e) | pos' > e              = True
-                                    | isOccupied bdSz board pos' = True
-                                    | otherwise             = False
+occupiedEast bdSz board pos' (_, e) | pos' > e                    = True
+                                    | isOccupied bdSz board pos'  = True
+                                    | otherwise                   = False
 
 occupiedWest :: Int -> Board -> Int -> (Int, Int) -> Bool
-occupiedWest bdSz board pos' (s, _) | pos' < s              = True
-                                    | isOccupied bdSz board pos' = True
-                                    | otherwise             = False
+occupiedWest bdSz board pos' (s, _) | pos' < s                    = True
+                                    | isOccupied bdSz board pos'  = True
+                                    | otherwise                   = False
 
 
--- 
+-- Units in Go are all stones connected to one another as long as they are
+-- of matching color. This function correctly identifies those units and returns
+-- that as a [[Int]] to be used later to verify whether or not that set has
+-- lost all their liberties and must be captured.
 identifyUnits :: Int -> Board -> [[Int]]
 identifyUnits _ []        = []
 identifyUnits bdSz (b:bs) =
@@ -111,6 +133,7 @@ uCombine (m:ms) (x:xs)  | null m            = m' : uCombine (m':ms) xs
     m' = m `union` x
     ms' = ms `union` [x]
 
+
 -- Checks the last element (x) in the list against the currently existing
 -- merged list to see if it belongs anywhere. If it does, union it with that
 -- list. Otherwise, recurse until either it does or it exists on its own.
@@ -126,6 +149,7 @@ uCombine' (m:ms) x  | any (`elem` m) x  = m `union` x : ms
 uFilter :: [[Int]] -> [[Int]]
 uFilter = map sort . filter (not . null) . map nub
 
+
 -- Check to see if current element of the board's state/player matches the
 -- player id that was passed in. Used in identifyUnits
 isSamePID :: Int -> Char -> Board -> Int -> Bool
@@ -138,5 +162,3 @@ isSamePID bdSz pID (b:bs) pos
 
 
 
-identifySingles :: PlayerID -> Board -> [Int]
-identifySingles pID board = undefined
