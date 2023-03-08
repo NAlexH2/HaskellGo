@@ -8,13 +8,14 @@ boardSize :: Int
 boardSize = 9
 
 
--- specifically in refernce to the max size of boards list
-boardSpaces :: Int
-boardSpaces = (boardSize*boardSize)-1
+-- specifically in reference to the max size of boards list
+-- //TODO - Change this to a counter rather than fixed size to the boardSize
+boardSpaces :: Int -> Int
+boardSpaces bs = (bs*bs)-1
 
--- //TODO -- Comment add
-rowSpaces :: Int
-rowSpaces = boardSize - 1
+-- //TODO -- Comment add parameter to this too
+rowSpaces :: Int -> Int
+rowSpaces bs = bs - 1
 
 -- Allows the code to swap between players. White initializes this
 -- because the first call to `turnToggle` will have black go first.
