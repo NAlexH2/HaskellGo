@@ -108,7 +108,6 @@ displayScore stats =
           checking all of those stones liberties.
       [ ] True for each positions stone losing all its liberties, false otherwise
       [ ] If any false, do nothing. If all true, mark all as captured. 
-        [ ] All of the above can be done in a do using <- probably?
       [ ] Single stone liberties are easy.
         [ ] If they aren't apart of a unit and all their liberties are gone,
             then mark as captured!
@@ -121,12 +120,13 @@ displayScore stats =
           [x] Need a function isOccupied :: Board -> (x,y) -> Bool
   [ ] Check and capture if liberties are gone
   [ ] Some how check territories? Maybe?
-    [ ] Or just stick with the "if it is shared, both get a point"?
-    [ ] This honestly might just come down to capture count...
+    [-] Or just stick with the "if it is shared, both get a point"?
+    [-] This honestly might just come down to capture count...
   [ ] Player stats -- kinda has to be done in tandem with capture
 
   
   *** COMPLETED TASKS ***
+  [x] Identify units! WOO!
   [x] Write up for checkpoint
   [x] Write tests for the checkpoint
   [x] Use a GameState versus separate vars to track the ENTIRE game
