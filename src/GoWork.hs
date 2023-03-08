@@ -36,23 +36,24 @@ pStone PB = stone Black
 pStone PW = stone White
 
 
--- //TODO - Comment
+-- Return the PlayerID stats passed in.
 currentPlayersStats :: PlayerID -> [PlayerStats] -> PlayerStats
 currentPlayersStats pID pStats = case filter (\(pid, _) -> pid == pID) pStats of
                             [] -> error "No Player Stats Available"
                             (x:_) -> x
 
--- //TODO - Comment
+
+-- Get the current PlayerStats from the GameState
 statsState :: GameState -> [PlayerStats]
 statsState = fst
 
 
--- //TODO - Comment
+-- Get the current Board for the game
 boardState :: GameState -> Board
 boardState = snd
 
 
--- //TODO - Comment
+-- Create a new GameState with (typically) updated information.
 newState :: [PlayerStats] -> Board -> GameState
 newState a b = (a, b)
 
@@ -66,37 +67,36 @@ emptyBoard bS =
     [(stone Blank, (r,i)) | i <- [0..(bS*bS)-1], let r = currentRow bS i]
 
 
--- //TODO - Comment
+-- Return the current rows number for the position 'i' that was provided.
 currentRow :: Int -> Int  -> Int
-currentRow bS i = i `div` bS
+currentRow bdSz i = i `div` bdSz
 
--- //TODO - Comment
+
+-- Return the previous rows number for the position 'i' that was provided
 previousRow :: Int ->  Int -> Int
-previousRow bS i = (i `div` bS)-1
+previousRow bdSz i = (i `div` bdSz)-1
 
--- //TODO - Comment
+
+-- Return the next rows number for the position 'i' that was provided
 nextRow :: Int ->  Int -> Int
-nextRow bS i = (i `div` bS)+1
+nextRow bdSz i = (i `div` bdSz)+1
 
--- //TODO - Comment
+
+-- Access the current position from the position passed in.
 getPos :: Position -> Int
 getPos pos = snd (snd pos)
 
--- //TODO - Comment
+
+-- Return the PlayerID as a Char from the current position.
 getPID :: Position -> Char
 getPID = fst
+
 
 -- Calculates start and end positions of the row passed in
 -- with the boardSize too
 rowLimit :: Int -> Int -> (Int, Int)
-rowLimit bS row = (row*bS, row*bS+(bS-1))
+rowLimit bdSz row = (row*bdSz, row*bdSz+(bdSz-1))
 
-{- 
-  /*FIXME - This is actually fine vs having a list of list of this. That is
-  because we can calc East/West with (Start,End) - (s,e) - in the same I use it
-  in rowLimit which takes (rowLimit row) before hand!
-  -- Maybe could even use this in North/South?? //TODO?
--}
 
 -- Creates a new GameState to be used for recursive play
 updateGame :: [PlayerStats] -> Board -> GameState
@@ -115,9 +115,7 @@ posCalc :: (Int, Int) -> Int -> Int
 posCalc (x,y) bdSz = (x-1)+((y-1)*bdSz)
 
 
--- make a move and new board based off of players coordinates
--- //TODO holy cow fix this mess... i == pos && snd snd b == .... alllll that.
--- Make it easy to read dude
+-- Make a move and new board based off of players coordinates
 makeBoard :: Int -> PlayerID -> Board -> (Int, Int) -> Board
 makeBoard _ _ [] (_, _)           = []
 makeBoard bdSz pID (b:bs) (i, pos)
@@ -126,10 +124,10 @@ makeBoard bdSz pID (b:bs) (i, pos)
   | i > boardSpaces boardSize   = []
   | otherwise                   = b:makeBoard bdSz pID bs (i+1, pos)
 
--- //TODO - Comment
-posUpdate :: Int -> PlayerID -> Int -> Position
-posUpdate bS pID pos = (pStone pID, (currentRow bS pos, pos))
 
+-- Return a new position with the passed in PlayerID
+posUpdate :: Int -> PlayerID -> Int -> Position
+posUpdate bdSz pID pos = (pStone pID, (currentRow bdSz pos, pos))
 
 
 -- Checks to see if the user made a legal move on the current game board
@@ -154,12 +152,14 @@ isOccupied bdSz (b:bs) pos
   | not $ null b && null bs                 = False
   | otherwise                               = False
 
+
 -- Performs pattern matching to ensure we update the correct players pass stat
 updatePlayerPass :: PlayerID -> (Int, Int) -> [PlayerStats] -> [PlayerStats]
 updatePlayerPass _ _ []         = []
 updatePlayerPass pID mv (p:ps)
   | pID /= fst p && mv == pass  = p:updatePlayerPass pID mv ps
   | otherwise                   = updatePlayerPass' p:ps
+
 
 -- Creates new PlayerStats for the correct player incrementing their pass
 updatePlayerPass' :: PlayerStats -> PlayerStats
@@ -173,13 +173,13 @@ getPassCount pID game = snd $ snd pStats
     pStats = currentPlayersStats pID (statsState game)
 
 
--- //TODO - Comment
+-- Obtain user input coordinates in a x y format to be used to place a stone
+-- down on the board.
 getCoordinates :: IO (Int, Int)
 getCoordinates =
   do
     hFlush stdout
     coords <- getLine
-    -- //TODO - implement pass once stats is working. Should be easy... I hope
     if contains "pass" $ map toLower coords then return (-99,-99)
     else if contains "quit" $ map toLower coords then exitSuccess
     else if contains "-" coords then return (-1, -1)
@@ -198,4 +198,4 @@ rowStates _ []          = []
 rowStates (s,e) (b:bs)
   | getPos b < s        = rowStates (s,e) bs
   | s <= e              = " " ++ fst b : rowStates (s+1,e) bs
-  | otherwise           =  [] -- rowStates (s+1,e) bs //TODO What is this comment for?
+  | otherwise           =  []
