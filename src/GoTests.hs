@@ -57,11 +57,34 @@ testBoard4 =
 testBoard5 :: [(Char, (Int, Int))]
 testBoard5 =
   [
+    ('w',(0,0)),('b',(0,1)),('_',(0,2)),
+    ('b',(1,3)),('b',(1,4)),('_',(1,5)),
+    ('_',(2,6)),('_',(2,7)),('w',(2,8))
+  ]
+
+testBoard6 :: [(Char, (Int, Int))]
+testBoard6 =
+  [
     ('_',(0,0)),('b',(0,1)),('_',(0,2)),
     ('w',(1,3)),('_',(1,4)),('b',(1,5)),
     ('_',(2,6)),('w',(2,7)),('_',(2,8))
   ]
 
+testBoard7 :: [(Char, (Int, Int))]
+testBoard7 =
+  [
+    ('w',(0,0)),('b',(0,1)),('_',(0,2)),
+    ('b',(1,3)),('_',(1,4)),('b',(1,5)),
+    ('_',(2,6)),('b',(2,7)),('w',(2,8))
+  ]
+
+testBoard8 :: [(Char, (Int, Int))]
+testBoard8 =
+  [
+    ('_',(0,0)),('w',(0,1)),('_',(0,2)),
+    ('w',(1,3)),('b',(1,4)),('w',(1,5)),
+    ('_',(2,6)),('w',(2,7)),('_',(2,8))
+  ]
 
 -- An empty board used to verify certain situations in tests
 emptyBoardTest :: [(Char, (Int, Int))]
@@ -269,5 +292,24 @@ testIdentifyUnits = "testIdentifyUnits" ~:
         identifyUnits tBSize testBoard1 ~?= [[0,1,3]],
         identifyUnits tBSize testBoard2 ~?= [[0,1,2,3,5,6,8],[4,7]],
         identifyUnits tBSize testBoard3 ~?= [[0,1,2,3,6]],
-        identifyUnits tBSize testBoard4 ~?= [[0,1,2,3],[7,8]]
+        identifyUnits tBSize testBoard4 ~?= [[0,1,2,3],[7,8]],
+        identifyUnits tBSize testBoard5 ~?= [[1,3,4]],
+        identifyUnits tBSize testBoard6 ~?= [[]]
       ]
+
+-- Test to check the board for any stones that are solo and have been captured
+testCappedSingles :: Test
+testCappedSingles = "testCappedSingles" ~:
+  TestList
+      [
+        cappedSingles tBSize units5 PW testBoard5 testBoard5 ~?= [0],
+        cappedSingles tBSize units6 PW testBoard6 testBoard6 ~?= [],
+        cappedSingles tBSize units6 PB testBoard6 testBoard6 ~?= [],
+        cappedSingles tBSize units7 PW testBoard7 testBoard7 ~?= [0,8],
+        cappedSingles tBSize units8 PB testBoard8 testBoard8 ~?= [4]
+      ]
+  where
+    units5 = identifyUnits tBSize testBoard5
+    units6 = identifyUnits tBSize testBoard6
+    units7 = identifyUnits tBSize testBoard7
+    units8 = identifyUnits tBSize testBoard8
