@@ -121,7 +121,7 @@ makeBoard _ _ [] (_, _)           = []
 makeBoard bdSz pID (b:bs) (i, pos)
   | i == pos && getPos b == pos =
       posUpdate bdSz pID pos:makeBoard bdSz pID bs (i+1, pos)
-  | i > boardSpaces boardSize   = []
+  | i > boardSpaces bdSz   = []
   | otherwise                   = b:makeBoard bdSz pID bs (i+1, pos)
 
 
