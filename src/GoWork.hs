@@ -147,10 +147,13 @@ isOccupied :: Int -> Board -> Int -> Bool
 isOccupied _ [] _                           = False
 isOccupied bdSz (b:bs) pos
   | pos > boardSpaces bdSz                  = False
-  | pos == getPos b && fst b /= stone Blank = True
   | pos /= getPos b                         = isOccupied bdSz bs pos
+  | pos == getPos b && fst b /= stone Blank = True
   | not $ null b && null bs                 = False
   | otherwise                               = False
+
+  -- //TODO what if 151 looked to check opposite pID and not blank?
+  -- if they are false and true respectively, return true, else false
 
 
 -- Performs pattern matching to ensure we update the correct players pass stat
