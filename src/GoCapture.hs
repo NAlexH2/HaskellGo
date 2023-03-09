@@ -13,17 +13,28 @@ theCaptureCode :: Int -> Board -> [Int]
 theCaptureCode bdSz board = undefined
 
 
--- Identify the positions on the board which are to be "captured" when
--- building a new board.
--- //TODO - finish this up when you've decided on the approach to identify...
---          Literally everything it feels like. Reference your notes in the
---          TODO in HaskellGo.hs
-capturedStones :: PlayerID -> GameState -> [Int]
-capturedStones p game = undefined
-  where
-    b = boardState game
-    s = statsState game
+-- Returns a list of all stones - both singles and units - to be removed
+-- from the board and added to the score of the player who captured.
+-- The PlayerID is the player NOT CURRENTLY TAKING THEIR TURN
+capturedStones :: Int -> PlayerID -> Board -> [Int]
+capturedStones bdSz oppositePlayer game = undefined
 
+-- //TODO - returns the single stone if itself has lost its liberties
+-- and it shouldn't. How best to check if adj positions are same pID?
+-- If it's inUnits but fails libCheck?
+-- Identifies capped units for the current board. Capped units means every
+-- single stone in the unit has lost all its liberties
+cappedUnits :: Int -> [[Int]] -> PlayerID -> Board -> Board -> [Int]
+cappedUnits _ _ _ [] _  = []
+cappedUnits _ [] _ _ _  = []
+cappedUnits bdSz units pID (b:bs) ref
+  | sPID && inUnits && libCheck = pos : cappedUnits bdSz units pID bs ref
+  | otherwise                   = cappedUnits bdSz units pID bs ref
+  where
+    pos = getPos b
+    inUnits = any (pos `elem`) units
+    sPID = getPID b == pStone pID
+    libCheck = occupiedLiberties bdSz ref pos
 
 -- Analyzes a board for any single stones that might be captured.
 -- Takes... board size, unit of stones, a PlayerID and two boards:
@@ -32,13 +43,14 @@ capturedStones p game = undefined
 cappedSingles :: Int -> [[Int]] -> PlayerID -> Board -> Board -> [Int]
 cappedSingles _ _ _ [] _            = []
 cappedSingles bdSz units pID (b:bs) ref
-  | (`elem` units) [pos]            = cappedSingles bdSz units pID bs ref
-  | cPID == pStone pID && libCheck  = pos : cappedSingles bdSz units pID bs ref
-  | otherwise                       = cappedSingles bdSz units pID bs ref
+  | inUnits           = cappedSingles bdSz units pID bs ref
+  | sPID && libCheck  = pos : cappedSingles bdSz units pID bs ref
+  | otherwise         = cappedSingles bdSz units pID bs ref
   where
-    pos       = getPos b
-    cPID      = getPID b
-    libCheck  = occupiedLiberties bdSz ref pos
+    pos = getPos b
+    inUnits = any (pos `elem`) units
+    sPID = getPID b == pStone pID
+    libCheck = occupiedLiberties bdSz ref pos
 
 
 -- check the current position on the board to see if is to be considered
@@ -82,6 +94,8 @@ occupiedWest :: Int -> Board -> Int -> (Int, Int) -> Bool
 occupiedWest bdSz board pos' (s, _) | pos' < s                    = True
                                     | isOccupied bdSz board pos'  = True
                                     | otherwise                   = False
+
+
 
 
 -- Units in Go are all stones connected to one another as long as they are
