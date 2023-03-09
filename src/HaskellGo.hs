@@ -46,7 +46,7 @@ haskellGo currentGame pID =
       let stats' = updatePlayerPass pID' move stats
       -- //HACK - Remove these in final version
       -- uncurry (printf "\n\n\n(%d,%d)\n\n\n") move
-      let captured = capturedStones pID' currentGame
+      let captured = capturedStones bdSz (turnToggle pID') board
       let newStats = updateStats pID' stats' captured
       let newBd = makeBoard bdSz pID' board (0, posCalc move bdSz)
       let currentGame' = updateGame newStats newBd
@@ -102,22 +102,6 @@ displayScore stats =
 
 
 {-- /*TODO
-  [ ] Check unit liberties and single stone liberties
-      [ ] Unit liberties allow a function to run and see if all those liberties
-        are captured. A list of stones that are apart of a unit and then
-          checking all of those stones liberties.
-      [ ] True for each positions stone losing all its liberties, false otherwise
-      [ ] If any false, do nothing. If all true, mark all as captured. 
-      [ ] Single stone liberties are easy.
-        [ ] If they aren't apart of a unit and all their liberties are gone,
-            then mark as captured!
-  [ ] When checking liberties, check to see if the surrounding stones are the
-      same color or not. If all (except for the stone we came from) are opposite
-      color, then it's captured. Otherwise, it's still free.
-      - The value for previous node could literally be prev passed in as an arg
-      [x] Check North, South, East and West liberties using the
-          rowLimit. Write an singular function for each of these
-          [x] Need a function isOccupied :: Board -> (x,y) -> Bool
   [ ] Check and capture if liberties are gone
   [ ] Some how check territories? Maybe?
     [-] Or just stick with the "if it is shared, both get a point"?
@@ -126,6 +110,22 @@ displayScore stats =
 
   
   *** COMPLETED TASKS ***
+  [x] Check unit liberties and single stone liberties
+    [x] Unit liberties allow a function to run and see if all those liberties
+        are captured. A list of stones that are apart of a unit and then
+        checking all of those stones liberties.
+    [x] True for each positions stone losing all its liberties, false otherwise
+    [x] If any false, do nothing. If all true, mark all as captured. 
+    [x] Single stone liberties are easy.
+    [x] If they aren't apart of a unit and all their liberties are gone,
+        then mark as captured!
+  [x] When checking liberties, check to see if the surrounding stones are the
+      same color or not. If all (except for the stone we came from) are opposite
+      color, then it's captured. Otherwise, it's still free.
+      - The value for previous node could literally be prev passed in as an arg
+      [x] Check North, South, East and West liberties using the
+          rowLimit. Write an singular function for each of these
+          [x] Need a function isOccupied :: Board -> (x,y) -> Bool
   [x] Identify units! WOO!
   [x] Write up for checkpoint
   [x] Write tests for the checkpoint
