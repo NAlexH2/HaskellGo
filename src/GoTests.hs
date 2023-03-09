@@ -86,6 +86,22 @@ testBoard8 =
     ('_',(2,6)),('w',(2,7)),('_',(2,8))
   ]
 
+testBoard9 :: [(Char, (Int, Int))]
+testBoard9 =
+  [
+    ('w',(0,0)),('b',(0,1)),('_',(0,2)),
+    ('w',(1,3)),('b',(1,4)),('_',(1,5)),
+    ('b',(2,6)),('_',(2,7)),('_',(2,8))
+  ]
+
+testBoard10 :: [(Char, (Int, Int))]
+testBoard10 =
+  [
+    ('_',(0,0)),('_',(0,1)),('b',(0,2)),
+    ('_',(1,3)),('b',(1,4)),('w',(1,5)),
+    ('_',(2,6)),('b',(2,7)),('w',(2,8))
+  ]
+
 -- An empty board used to verify certain situations in tests
 emptyBoardTest :: [(Char, (Int, Int))]
 emptyBoardTest =
@@ -313,3 +329,29 @@ testCappedSingles = "testCappedSingles" ~:
     units6 = identifyUnits tBSize testBoard6
     units7 = identifyUnits tBSize testBoard7
     units8 = identifyUnits tBSize testBoard8
+
+-- Test to check if the units can properly identified
+-- as captured or not.
+testCappedUnits :: Test
+testCappedUnits = "testCappedUnits" ~:
+  TestList
+      [
+        cappedUnits tBSize units1 PW testBoard1 testBoard1    ~?= [0,1,3],
+        cappedUnits tBSize units2 PW testBoard2 testBoard2    ~?= [4,7],
+        cappedUnits tBSize units3 PB testBoard3 testBoard3    ~?= [],
+        cappedUnits tBSize units4 PB testBoard4 testBoard4    ~?= [],
+        cappedUnits tBSize units4 PW testBoard4 testBoard4    ~?= [],
+        cappedUnits tBSize units7 PW testBoard7 testBoard7    ~?= [],
+        cappedUnits tBSize units8 PB testBoard8 testBoard8    ~?= [],
+        cappedUnits tBSize units9 PW testBoard9 testBoard9    ~?= [0,3],
+        cappedUnits tBSize units10 PW testBoard10 testBoard10 ~?= [5,8]
+      ]
+      where
+        units1 = identifyUnits tBSize testBoard1
+        units2 = identifyUnits tBSize testBoard2
+        units3 = identifyUnits tBSize testBoard3
+        units4 = identifyUnits tBSize testBoard4
+        units7 = identifyUnits tBSize testBoard7
+        units8 = identifyUnits tBSize testBoard8
+        units9 = identifyUnits tBSize testBoard9
+        units10 = identifyUnits tBSize testBoard10
