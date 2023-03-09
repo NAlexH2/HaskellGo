@@ -19,6 +19,7 @@ theCaptureCode bdSz board = undefined
 capturedStones :: Int -> PlayerID -> Board -> [Int]
 capturedStones bdSz oppositePlayer game = undefined
 
+
 -- //TODO - returns the single stone if itself has lost its liberties
 -- and it shouldn't. How best to check if adj positions are same pID?
 -- If it's inUnits but fails libCheck?
@@ -35,6 +36,7 @@ cappedUnits bdSz units pID (b:bs) ref
     inUnits = any (pos `elem`) units
     sPID = getPID b == pStone pID
     libCheck = occupiedLiberties bdSz ref pos
+
 
 -- Analyzes a board for any single stones that might be captured.
 -- Takes... board size, unit of stones, a PlayerID and two boards:
@@ -94,8 +96,6 @@ occupiedWest :: Int -> Board -> Int -> (Int, Int) -> Bool
 occupiedWest bdSz board pos' (s, _) | pos' < s                    = True
                                     | isOccupied bdSz board pos'  = True
                                     | otherwise                   = False
-
-
 
 
 -- Units in Go are all stones connected to one another as long as they are
