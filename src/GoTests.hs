@@ -3,6 +3,7 @@ import GoTypesData
 import GoWork
 import GoCapture
 import Test.HUnit
+import GoConsts
 
 
 -- Smaller boards are easier to test. All tests are using a 3x3 board
@@ -217,6 +218,25 @@ testNextRow = "testNextRow" ~:
         nextRow tBSize 8 ~?= 3  --DNE in test. Checked elsewhere!
       ]
 
+-- Test the getNext function to see if it returns actual positions correctly
+-- or no position if it wasn't found.
+testGetNext :: Test
+testGetNext = "testGetNext" ~:
+  TestList
+      [
+        getNext 0 testBoard1 ~?= ('w',(0,1)),
+        getNext 3 testBoard1 ~?= ('b',(1,4)),
+        getNext 7 testBoard1 ~?= ('_',(2,8)),
+        getNext 8 testBoard1 ~?= endOfBoard
+      ]
+-- testBoard1 :: [(Char, (Int, Int))]
+-- testBoard1 =
+--   [
+--     ('w',(0,0)),('w',(0,1)),('b',(0,2)),
+--     ('w',(1,3)),('b',(1,4)),('_',(1,5)),
+--     ('b',(2,6)),('_',(2,7)),('_',(2,8))
+--   ]
+
 -- Get the position in the list based on the position set being analyzed
 testGetPosition :: Test
 testGetPosition = "testGetPosition" ~:
@@ -321,6 +341,25 @@ testIdentifyUnits = "testIdentifyUnits" ~:
         identifyUnits tBSize testBoard6 ~?= [[]]
       ]
 
+-- Test to verify that the current specific units liberties are found
+-- and returned correctly.
+testIDUnitLiberties :: Test
+testIDUnitLiberties = "testIDUnitLiberties" ~:
+  TestList
+      [
+        idUnitLiberties tBSize unit1_1 PB testBoard1 ~?= [],
+        idUnitLiberties tBSize unit1_2 PW testBoard1 ~?= [2,4,6],
+        idUnitLiberties tBSize unit2_1 PB testBoard2 ~?= [4,7],
+        idUnitLiberties tBSize unit2_2 PW testBoard2 ~?= [1,3,5,6,8]
+        -- //TODO add more boards to test
+      ]
+  where
+    unit1_1 = []
+    unit1_2 = [0,1,3]
+    unit2_1 = [0,1,2,3,5,6,8]
+    unit2_2 = [4,7]
+
+
 -- Test to check the board for any stones that are solo and have been captured
 testCappedSingles :: Test
 testCappedSingles = "testCappedSingles" ~:
@@ -346,12 +385,12 @@ testCappedUnits = "testCappedUnits" ~:
       [
         cappedUnits tBSize units1 PW testBoard1 testBoard1    ~?= [0,1,3],
         cappedUnits tBSize units2 PW testBoard2 testBoard2    ~?= [4,7],
-        -- Fail
+        -- Fail below
         cappedUnits tBSize units3 PB testBoard3 testBoard3    ~?= [],
         cappedUnits tBSize units3_1 PB testBoard3_1 testBoard3_1    ~?= [],
-        -- Fail
+        -- Fail below
         cappedUnits tBSize units4 PB testBoard4 testBoard4    ~?= [],
-        -- Fail
+        -- Fail below
         cappedUnits tBSize units4 PW testBoard4 testBoard4    ~?= [],
         cappedUnits tBSize units7 PW testBoard7 testBoard7    ~?= [],
         cappedUnits tBSize units8 PB testBoard8 testBoard8    ~?= [],
@@ -369,8 +408,13 @@ testCappedUnits = "testCappedUnits" ~:
         units9 = identifyUnits tBSize testBoard9
         units10 = identifyUnits tBSize testBoard10
 
-
-
+-- testBoard1 :: [(Char, (Int, Int))]
+-- testBoard1 =
+--   [
+--     ('w',(0,0)),('w',(0,1)),('b',(0,2)),
+--     ('w',(1,3)),('b',(1,4)),('_',(1,5)),
+--     ('b',(2,6)),('_',(2,7)),('_',(2,8))
+--   ]
 -- testBoard2 :: [(Char, (Int, Int))]
 -- testBoard2 =
 --   [
@@ -402,18 +446,47 @@ testCappedUnits = "testCappedUnits" ~:
 --   ]
 
 
+  
 -- src/GoTests.hs:350
 -- expected: []
 --  but got: [0]
+-- testBoard3 :: [(Char, (Int, Int))]
+-- testBoard3 =
+--   [
+--     ('b',(0,0)),('b',(0,1)),('b',(0,2)),
+--     ('b',(1,3)),('_',(1,4)),('_',(1,5)),
+--     ('b',(2,6)),('_',(2,7)),('_',(2,8))
+--   ]
 
 -- src/GoTests.hs:351
 -- expected: []
 --  but got: [0,1,3,6]
+-- testBoard3_1 :: [(Char, (Int, Int))]
+-- testBoard3_1 =
+--   [
+--     ('b',(0,0)),('b',(0,1)),('b',(0,2)),
+--     ('b',(1,3)),('b',(1,4)),('_',(1,5)),
+--     ('b',(2,6)),('b',(2,7)),('_',(2,8))
+--   ]
 
 -- src/GoTests.hs:353
 -- expected: []
 --  but got: [0]
+-- testBoard4 :: [(Char, (Int, Int))]
+-- testBoard4 =
+--   [
+--     ('b',(0,0)),('b',(0,1)),('b',(0,2)),
+--     ('b',(1,3)),('_',(1,4)),('_',(1,5)),
+--     ('_',(2,6)),('w',(2,7)),('w',(2,8))
+--   ]
 
 -- src/GoTests.hs:355
 -- expected: []
 --  but got: [8]
+-- testBoard4 :: [(Char, (Int, Int))]
+-- testBoard4 =
+--   [
+--     ('b',(0,0)),('b',(0,1)),('b',(0,2)),
+--     ('b',(1,3)),('_',(1,4)),('_',(1,5)),
+--     ('_',(2,6)),('w',(2,7)),('w',(2,8))
+--   ]
