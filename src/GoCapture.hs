@@ -20,24 +20,6 @@ capturedStones :: Int -> PlayerID -> Board -> [Int]
 capturedStones bdSz oppositePlayer game = undefined
 
 
--- //TODO - returns the single stone if itself has lost its liberties
--- and it shouldn't. How best to check if adj positions are same pID?
--- If it's inUnits but fails libCheck?
--- Identifies capped units for the current board. Capped units means every
--- single stone in the unit has lost all its liberties
-cappedUnits :: Int -> [[Int]] -> PlayerID -> Board -> Board -> [Int]
-cappedUnits _ _ _ [] _  = []
-cappedUnits _ [] _ _ _  = []
-cappedUnits bdSz units pID (b:bs) ref
-  | sPID && inUnits && libCheck = pos : cappedUnits bdSz units pID bs ref
-  | otherwise                   = cappedUnits bdSz units pID bs ref
-  where
-    pos = getPos b
-    inUnits = any (pos `elem`) units
-    sPID = getPID b == pStone pID
-    libCheck = occupiedLiberties bdSz ref pos
-
-
 -- Analyzes a board for any single stones that might be captured.
 -- Takes... board size, unit of stones, a PlayerID and two boards:
 -- one to traverse and compare and one to reference when examined in other
@@ -52,24 +34,48 @@ cappedSingles bdSz units pID (b:bs) ref
     pos = getPos b
     inUnits = any (pos `elem`) units
     sPID = getPID b == pStone pID
-    libCheck = occupiedLiberties bdSz ref pos
+    libCheck = lostLiberties bdSz ref pos
+
+
+-- //TODO - returns the single stone if itself has lost its liberties
+-- and it shouldn't. How best to check if adj positions are same pID?
+-- If it's inUnits but fails libCheck?
+-- Identifies capped units for the current board. Capped units means every
+-- single stone in the unit has lost all its liberties
+cappedUnits :: Int -> [[Int]] -> PlayerID -> Board -> Board -> [Int]
+cappedUnits _ _ _ [] _  = []
+cappedUnits _ [] _ _ _  = []
+cappedUnits bdSz units pID [x] ref = []
+cappedUnits bdSz units pID (b:bs:bss) ref = undefined
+  -- | sPID && inUnits && libCheck = pos : cappedUnits bdSz units pID bs ref
+  -- | otherwise                   = cappedUnits bdSz units pID bs ref
+  -- where
+  --   pos = getPos b
+  --   inUnits = any (pos `elem`) units
+  --   sPID = getPID b == pStone pID
+  --   libCheck = lostLiberties bdSz ref pos
+
 
 
 -- check the current position on the board to see if is to be considered
--- captured. If all bools are true, return True, otherwise False
-occupiedLiberties :: Int -> Board -> Int -> Bool
-occupiedLiberties bdSz board pos = and bools
+-- captured. If all bools are true (all liberties are lost) then return True, 
+-- otherwise return false False
+lostLiberties :: Int -> Board -> Int -> Bool
+lostLiberties bdSz board pos = and bools
   where
-    north = pos-bdSz
-    south = pos+bdSz
-    east  = pos+1
-    west  = pos-1
+    n   = north pos bdSz
+    s   = south pos bdSz
+    e    = east pos
+    w    = west pos
+    nLimits = rowLimit bdSz (previousRow bdSz pos)
+    sLimits = rowLimit bdSz (nextRow bdSz pos)
+    e_wLimits = rowLimit bdSz (currentRow bdSz pos)
     bools =
       [
-        occupiedNorth bdSz board north (rowLimit bdSz (previousRow bdSz pos)),
-        occupiedSouth bdSz board south (rowLimit bdSz (nextRow bdSz pos)),
-        occupiedEast bdSz board east (rowLimit bdSz (currentRow bdSz pos)),
-        occupiedWest bdSz board west (rowLimit bdSz (currentRow bdSz pos))
+        occupiedNorth bdSz board n nLimits,
+        occupiedSouth bdSz board s sLimits,
+        occupiedEast bdSz board e e_wLimits,
+        occupiedWest bdSz board w e_wLimits
       ]
 
 
@@ -98,6 +104,20 @@ occupiedWest bdSz board pos' (s, _) | pos' < s                    = True
                                     | otherwise                   = False
 
 
+-- Identify the specific player passed ins liberties for their unit provided.
+-- The PlayerID provided should be the opposite player
+idUnitLiberties :: Int -> [Int] -> PlayerID -> Board -> [Int]
+idUnitLiberties _ _ _ [] = []
+idUnitLiberties bdSz unit pID (b:bs)
+  | overlap && notPID  = loc : idUnitLiberties bdSz unit pID bs
+  | otherwise                   = idUnitLiberties bdSz unit pID bs
+  where
+    loc  = getPos b
+    notPID = pStone pID /= getPID b
+    overlap = any (`elem` unit) cardinals
+    cardinals = [north loc bdSz, south loc bdSz, east loc, west loc]
+
+
 -- Units in Go are all stones connected to one another as long as they are
 -- of matching color. This function correctly identifies those units and returns
 -- that as a [[Int]] to be used later to verify whether or not that set has
@@ -110,10 +130,10 @@ identifyUnits bdSz (b:bs) =
     else do
       let findFriends =
             [
-              (isSamePID bdSz curPID bs north, north),
-              (isSamePID bdSz curPID bs south, south),
-              (isSamePID bdSz curPID bs east, east),
-              (isSamePID bdSz curPID bs west, west)
+              (isSamePID bdSz curPID bs n, n),
+              (isSamePID bdSz curPID bs s, s),
+              (isSamePID bdSz curPID bs e, e),
+              (isSamePID bdSz curPID bs w, w)
             ]
       let friends   = filter fst findFriends
       -- let friends'  = map snd friends : identifyUnits' bs
@@ -127,10 +147,10 @@ identifyUnits bdSz (b:bs) =
       where
         curPos  = getPos b
         curPID  = fst b
-        north   = curPos-bdSz
-        south   = curPos+bdSz
-        east    = curPos+1
-        west    = curPos-1
+        n   = north curPos bdSz
+        s   = south curPos bdSz
+        e    = east curPos
+        w    = west curPos
 
 
 -- The list of units identified regrouped into full lists of units based
@@ -170,9 +190,10 @@ isSamePID :: Int -> Char -> Board -> Int -> Bool
 isSamePID _ _ [] _                      = False
 isSamePID bdSz pID (b:bs) pos
   | pos < 0 || pos > boardSpaces bdSz   = False
-  | pos /= getPos b                     = isSamePID bdSz pID bs pos
-  | pos == getPos b && pID == getPID b  = True
+  | not posCheck                        = isSamePID bdSz pID bs pos
+  | posCheck && pIDCheck                = True
   | otherwise                           = False
-
-
+  where
+    posCheck = pos == getPos b
+    pIDCheck = pID == getPID b
 
