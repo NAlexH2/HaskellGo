@@ -67,6 +67,21 @@ emptyBoard bS =
     [(stone Blank, (r,i)) | i <- [0..(bS*bS)-1], let r = currentRow bS i]
 
 
+-- The following are cardinal positions on the board from 
+-- position value passed in
+north :: Int -> Int -> Int
+north pos bdSz = pos - bdSz
+
+south :: Int -> Int -> Int
+south pos bdSz = pos + bdSz
+
+east :: Int -> Int
+east pos = pos + 1
+
+west :: Int -> Int
+west pos = pos - 1
+
+
 -- Return the current rows number for the position 'i' that was provided.
 currentRow :: Int -> Int  -> Int
 currentRow bdSz i = i `div` bdSz
@@ -81,6 +96,12 @@ previousRow bdSz i = (i `div` bdSz)-1
 nextRow :: Int ->  Int -> Int
 nextRow bdSz i = (i `div` bdSz)+1
 
+-- Get the next position in the list
+-- //TODO come back to this to see if it you can avoid using (b:bs) everywhere
+getNext :: Int -> Board -> Position
+getNext _ [] = ('d',(-1,-1))
+getNext pos (b:bs)  | (pos+1) /= getPos b = getNext pos bs
+                    | otherwise = b
 
 -- Access the current position from the position passed in.
 getPos :: Position -> Int
