@@ -3,7 +3,7 @@ import Test.HUnit ( Test(TestList), runTestTT )
 
 main :: IO ()
 main = do
-  _ <- runTestTT $ TestList [ testCapturedStones ]
+  _ <- runTestTT $ TestList [ testUpdateStats ]
   -- _ <- runTestTT $ TestList 
   --       [ 
   --         testCurrentPlayerStats, testBoardState, testStatsState,
