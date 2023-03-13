@@ -128,11 +128,29 @@ updateGame :: [PlayerStats] -> Board -> GameState
 updateGame s b = (s, b)
 
 
--- //TODO  -- Updates player stats for current pID if they captured stones
-updateStats :: PlayerID -> [PlayerStats] -> [Int] -> [PlayerStats]
-updateStats _ pStats [] = pStats
-updateStats pId pStats (x:xs) = undefined
+-- Performs pattern matching to ensure we update the correct players pass stat
+updatePlayerPass :: PlayerID -> (Int, Int) -> [PlayerStats] -> [PlayerStats]
+updatePlayerPass _ _ []         = []
+updatePlayerPass pID mv (p:ps)
+  | pID /= fst p && mv == pass  = p:updatePlayerPass pID mv ps
+  | otherwise                   = updatePlayerPass' p:ps
 
+-- Creates new PlayerStats for the correct player incrementing their pass
+updatePlayerPass' :: PlayerStats -> PlayerStats
+updatePlayerPass' p = (fst p, (fst (snd p), snd (snd p)+1))
+
+-- Updates player stats for current pID if they captured stones
+updateStats :: PlayerID -> [PlayerStats] -> [Int] -> [PlayerStats]
+updateStats _ pStats []     = pStats
+updateStats _ [] _          = []
+updateStats pID (p:ps) caps
+  | pID /= fst p  = p:updateStats pID ps caps
+  | otherwise     = updateStats' lenCaps p:ps
+  where
+    lenCaps = length caps
+
+updateStats' :: Int -> PlayerStats -> PlayerStats
+updateStats' i p = (fst p, (fst (snd p)+i, snd (snd p)))
 
 -- Quickly get the position in the Board[Position] list being changed
 -- based on the x,y coordinates the user entered (-1 because of list indexing)
@@ -141,18 +159,21 @@ posCalc (x,y) bdSz = (x-1)+((y-1)*bdSz)
 
 
 -- Make a move and new board based off of players coordinates
-makeBoard :: Int -> PlayerID -> Board -> (Int, Int) -> Board
-makeBoard _ _ [] (_, _)           = []
-makeBoard bdSz pID (b:bs) (i, pos)
-  | i == pos && getPos b == pos =
-      posUpdate bdSz pID pos:makeBoard bdSz pID bs (i+1, pos)
-  | i > boardSpaces bdSz   = []
-  | otherwise                   = b:makeBoard bdSz pID bs (i+1, pos)
-
+-- i is current pos
+makeBoard :: Int -> PlayerID -> Board -> Int -> [Int] -> Board
+makeBoard _ _ [] _ _      = []
+makeBoard bdSz pID (b:bs) pos caps
+  | cPos `elem` caps  = posUpdate bdSz '_' cPos:makeBoard bdSz pID bs pos caps
+  | sPos              = posUpdate bdSz iPID pos:makeBoard bdSz pID bs pos caps
+  | otherwise         = b:makeBoard bdSz pID bs pos caps
+  where
+    cPos = getPos b
+    sPos = cPos == pos
+    iPID = pStone pID
 
 -- Return a new position with the passed in PlayerID
-posUpdate :: Int -> PlayerID -> Int -> Position
-posUpdate bdSz pID pos = (pStone pID, (currentRow bdSz pos, pos))
+posUpdate :: Int -> Char -> Int -> Position
+posUpdate bdSz cID pos = (cID, (currentRow bdSz pos, pos))
 
 
 -- Checks to see if the user made a legal move on the current game board
@@ -181,17 +202,9 @@ isOccupied bdSz (b:bs) pos
   -- if they are false and true respectively, return true, else false
 
 
--- Performs pattern matching to ensure we update the correct players pass stat
-updatePlayerPass :: PlayerID -> (Int, Int) -> [PlayerStats] -> [PlayerStats]
-updatePlayerPass _ _ []         = []
-updatePlayerPass pID mv (p:ps)
-  | pID /= fst p && mv == pass  = p:updatePlayerPass pID mv ps
-  | otherwise                   = updatePlayerPass' p:ps
 
 
--- Creates new PlayerStats for the correct player incrementing their pass
-updatePlayerPass' :: PlayerStats -> PlayerStats
-updatePlayerPass' ps = (fst ps, (fst (snd ps), snd (snd ps)+1))
+
 
 
 -- Returns current players pass count
