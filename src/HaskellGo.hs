@@ -102,11 +102,9 @@ displayScore stats =
 
 
 {-- /*TODO
-  [ ] Check and capture if liberties are gone
-  [ ] Some how check territories? Maybe?
-    [-] Or just stick with the "if it is shared, both get a point"?
-    [-] This honestly might just come down to capture count...
-  [ ] Player stats -- kinda has to be done in tandem with capture
+  [ ] Player stats -- Length of captured stones increments current players score
+  [ ] Ignore/Remove captured stones from the board.
+  [ ] Write a big test to check all this.
 
   
   *** COMPLETED TASKS ***
