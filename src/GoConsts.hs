@@ -1,5 +1,5 @@
 module GoConsts where
-  
+
 import GoTypesData
 
 -- Define the size of the board here. Future would like to make it user choice
