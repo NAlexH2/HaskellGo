@@ -97,7 +97,7 @@ nextRow :: Int ->  Int -> Int
 nextRow bdSz i = (i `div` bdSz)+1
 
 -- Get the next position in the list
--- //TODO come back to this to see if it you can avoid using (b:bs) everywhere
+-- //TODO is this actually used?
 getNext :: Int -> Board -> Position
 getNext _ [] = ('d',(-1,-1))
 getNext pos (b:bs)  | (pos+1) /= getPos b = getNext pos bs
@@ -112,6 +112,10 @@ getPos pos = snd (snd pos)
 getPID :: Position -> Char
 getPID = fst
 
+-- //TODO - Do you need this?
+-- safeHead :: [Int] -> Maybe Int
+-- safeHead [] = Nothing
+-- safeHead (x:_) = Just x
 
 -- Calculates start and end positions of the row passed in
 -- with the boardSize too
