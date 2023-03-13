@@ -202,6 +202,18 @@ testUpdatePlayerPass = "testUpdatePlayerPass" ~:
             updatePlayerPass PW (-99,-99) [] ~?= []
           ]
 
+-- Test to see if player stats is properly updating with identified captured
+-- stones
+testUpdateStats :: Test
+testUpdateStats = "testUpdateStats" ~:
+  TestList
+      [
+        updateStats PB testStats2 [1,2,3] ~?= [(PB,(3,1)), (PW,(0,0))],
+        updateStats PW testStats2 [4,5,6] ~?= [(PB,(0,1)), (PW,(3,0))],
+        updateStats PB testStats3 [7,8,9] ~?= [(PB,(3,0)), (PW,(0,1))],
+        updateStats PW testStats3 [1,4,7] ~?= [(PB,(0,0)), (PW,(3,1))]
+      ]
+
 -- Ensure the getPassCount returns the correct value with respect to playerID
 testGetPassCount :: Test
 testGetPassCount = "testGetPassCount" ~:
@@ -315,6 +327,41 @@ testCapturedStones = "testCapturedStones" ~:
       capturedStones tBSize PW testBoard11    ~?= [0,5,8]
     ]
 
+-- //TODO - WIP
+-- testMakeBoard :: Test
+-- testMakeBoard = "testMakeBoard" ~:
+--   TestList
+--     [
+--       makeBoard tBSize PB testBoard1 8 caps1PW ~?= 
+--         [
+--           ('_',(0,0)),('_',(0,1)),('b',(0,2)),
+--           ('_',(1,3)),('b',(1,4)),('_',(1,5)),
+--           ('b',(2,6)),('_',(2,7)),('b',(2,8))
+--         ],
+--         makeBoard tBSize PW testBoard1 8 caps1PB ~?= 
+--         [
+--           ('w',(0,0)),('w',(0,1)),('b',(0,2)),
+--           ('w',(1,3)),('b',(1,4)),('_',(1,5)),
+--           ('b',(2,6)),('_',(2,7)),('w',(2,8))
+--         ],
+--         makeBoard tBSize PB testBoard1 8 caps1PW ~?= 
+--         [
+--           ('_',(0,0)),('_',(0,1)),('b',(0,2)),
+--           ('_',(1,3)),('b',(1,4)),('_',(1,5)),
+--           ('b',(2,6)),('_',(2,7)),('b',(2,8))
+--         ],
+--     ]
+--     where
+--       caps1PB   = capturedStones tBSize PB testBoard1
+--       caps1PW   = capturedStones tBSize PW testBoard1
+--       caps2PB   = capturedStones tBSize PB testBoard2
+--       caps2PW   = capturedStones tBSize PW testBoard2
+--       caps3PB   = capturedStones tBSize PB testBoard3
+--       caps3PW   = capturedStones tBSize PW testBoard3
+--       caps3_1PB = capturedStones tBSize PB testBoard3_1
+--       caps3_1PW = capturedStones tBSize PW testBoard3_1
+--       caps7PB   = capturedStones tBSize PB testBoard7
+--       caps7PW   = capturedStones tBSize PW testBoard7
 
 -- All the test boards used in tests above
 testBoard1 :: [(Char, (Int, Int))]
