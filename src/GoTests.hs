@@ -1,8 +1,9 @@
 module GoTests where
+
 import GoTypesData
 import GoWork
 import GoCapture
-import Test.HUnit
+import Test.HUnit ( (~?=), (~:), Test(TestList) )
 import GoConsts
 
 
@@ -21,105 +22,6 @@ testStats2 = [(PB,(0,1)), (PW,(0,0))]
 -- Modified PW pass value used to check in updating players pass value
 testStats3 :: [(PlayerID, (Int, Int))]
 testStats3 = [(PB,(0,0)), (PW,(0,1))]
-
--- A test board used to check a large number of functions
-testBoard1 :: [(Char, (Int, Int))]
-testBoard1 =
-  [
-    ('w',(0,0)),('w',(0,1)),('b',(0,2)),
-    ('w',(1,3)),('b',(1,4)),('_',(1,5)),
-    ('b',(2,6)),('_',(2,7)),('_',(2,8))
-  ]
-
-testBoard2 :: [(Char, (Int, Int))]
-testBoard2 =
-  [
-    ('b',(0,0)),('b',(0,1)),('b',(0,2)),
-    ('b',(1,3)),('w',(1,4)),('b',(1,5)),
-    ('b',(2,6)),('w',(2,7)),('b',(2,8))
-  ]
-
-testBoard3 :: [(Char, (Int, Int))]
-testBoard3 =
-  [
-    ('b',(0,0)),('b',(0,1)),('b',(0,2)),
-    ('b',(1,3)),('_',(1,4)),('_',(1,5)),
-    ('b',(2,6)),('_',(2,7)),('_',(2,8))
-  ]
-
-testBoard3_1 :: [(Char, (Int, Int))]
-testBoard3_1 =
-  [
-    ('b',(0,0)),('b',(0,1)),('b',(0,2)),
-    ('b',(1,3)),('b',(1,4)),('_',(1,5)),
-    ('b',(2,6)),('b',(2,7)),('_',(2,8))
-  ]
-
-testBoard4 :: [(Char, (Int, Int))]
-testBoard4 =
-  [
-    ('b',(0,0)),('b',(0,1)),('b',(0,2)),
-    ('b',(1,3)),('_',(1,4)),('_',(1,5)),
-    ('_',(2,6)),('w',(2,7)),('w',(2,8))
-  ]
-
-testBoard5 :: [(Char, (Int, Int))]
-testBoard5 =
-  [
-    ('w',(0,0)),('b',(0,1)),('_',(0,2)),
-    ('b',(1,3)),('b',(1,4)),('_',(1,5)),
-    ('_',(2,6)),('_',(2,7)),('w',(2,8))
-  ]
-
-testBoard6 :: [(Char, (Int, Int))]
-testBoard6 =
-  [
-    ('_',(0,0)),('b',(0,1)),('_',(0,2)),
-    ('w',(1,3)),('_',(1,4)),('b',(1,5)),
-    ('_',(2,6)),('w',(2,7)),('_',(2,8))
-  ]
-
-testBoard7 :: [(Char, (Int, Int))]
-testBoard7 =
-  [
-    ('w',(0,0)),('b',(0,1)),('_',(0,2)),
-    ('b',(1,3)),('_',(1,4)),('b',(1,5)),
-    ('_',(2,6)),('b',(2,7)),('w',(2,8))
-  ]
-
-testBoard8 :: [(Char, (Int, Int))]
-testBoard8 =
-  [
-    ('_',(0,0)),('w',(0,1)),('_',(0,2)),
-    ('w',(1,3)),('b',(1,4)),('w',(1,5)),
-    ('_',(2,6)),('w',(2,7)),('_',(2,8))
-  ]
-
-testBoard9 :: [(Char, (Int, Int))]
-testBoard9 =
-  [
-    ('w',(0,0)),('b',(0,1)),('_',(0,2)),
-    ('w',(1,3)),('b',(1,4)),('_',(1,5)),
-    ('b',(2,6)),('_',(2,7)),('_',(2,8))
-  ]
-
-testBoard10 :: [(Char, (Int, Int))]
-testBoard10 =
-  [
-    ('_',(0,0)),('_',(0,1)),('b',(0,2)),
-    ('_',(1,3)),('b',(1,4)),('w',(1,5)),
-    ('_',(2,6)),('b',(2,7)),('w',(2,8))
-  ]
-
--- An empty board used to verify certain situations in tests
-emptyBoardTest :: [(Char, (Int, Int))]
-emptyBoardTest =
-  [
-    ('_',(0,0)),('_',(0,1)),('_',(0,2)),
-    ('_',(1,3)),('_',(1,4)),('_',(1,5)),
-    ('_',(2,6)),('_',(2,7)),('_',(2,8))
-  ]
-
 
 -- The state of the board when testing the larger functions.
 testState :: ([PlayerStats], Board)
@@ -341,25 +243,6 @@ testIdentifyUnits = "testIdentifyUnits" ~:
         identifyUnits tBSize testBoard6 ~?= [[]]
       ]
 
--- Test to verify that the current specific units liberties are found
--- and returned correctly.
-testIDUnitLiberties :: Test
-testIDUnitLiberties = "testIDUnitLiberties" ~:
-  TestList
-      [
-        idUnitLiberties tBSize unit1_1 PB testBoard1 ~?= [],
-        idUnitLiberties tBSize unit1_2 PW testBoard1 ~?= [2,4,6],
-        idUnitLiberties tBSize unit2_1 PB testBoard2 ~?= [4,7],
-        idUnitLiberties tBSize unit2_2 PW testBoard2 ~?= [1,3,5,6,8]
-        -- //TODO add more boards to test
-      ]
-  where
-    unit1_1 = []
-    unit1_2 = [0,1,3]
-    unit2_1 = [0,1,2,3,5,6,8]
-    unit2_2 = [4,7]
-
-
 -- Test to check the board for any stones that are solo and have been captured
 testCappedSingles :: Test
 testCappedSingles = "testCappedSingles" ~:
@@ -385,12 +268,9 @@ testCappedUnits = "testCappedUnits" ~:
       [
         cappedUnits tBSize units1 PW testBoard1 testBoard1    ~?= [0,1,3],
         cappedUnits tBSize units2 PW testBoard2 testBoard2    ~?= [4,7],
-        -- Fail below
         cappedUnits tBSize units3 PB testBoard3 testBoard3    ~?= [],
         cappedUnits tBSize units3_1 PB testBoard3_1 testBoard3_1    ~?= [],
-        -- Fail below
         cappedUnits tBSize units4 PB testBoard4 testBoard4    ~?= [],
-        -- Fail below
         cappedUnits tBSize units4 PW testBoard4 testBoard4    ~?= [],
         cappedUnits tBSize units7 PW testBoard7 testBoard7    ~?= [],
         cappedUnits tBSize units8 PB testBoard8 testBoard8    ~?= [],
@@ -408,85 +288,136 @@ testCappedUnits = "testCappedUnits" ~:
         units9 = identifyUnits tBSize testBoard9
         units10 = identifyUnits tBSize testBoard10
 
--- testBoard1 :: [(Char, (Int, Int))]
--- testBoard1 =
---   [
---     ('w',(0,0)),('w',(0,1)),('b',(0,2)),
---     ('w',(1,3)),('b',(1,4)),('_',(1,5)),
---     ('b',(2,6)),('_',(2,7)),('_',(2,8))
---   ]
--- testBoard2 :: [(Char, (Int, Int))]
--- testBoard2 =
---   [
---     ('b',(0,0)),('b',(0,1)),('b',(0,2)),
---     ('b',(1,3)),('w',(1,4)),('b',(1,5)),
---     ('b',(2,6)),('w',(2,7)),('b',(2,8))
---   ]
--- testBoard3 :: [(Char, (Int, Int))]
--- testBoard3 =
---   [
---     ('b',(0,0)),('b',(0,1)),('b',(0,2)),
---     ('b',(1,3)),('_',(1,4)),('_',(1,5)),
---     ('b',(2,6)),('_',(2,7)),('_',(2,8))
---   ]
 
--- testBoard4 :: [(Char, (Int, Int))]
--- testBoard4 =
---   [
---     ('b',(0,0)),('b',(0,1)),('b',(0,2)),
---     ('b',(1,3)),('_',(1,4)),('_',(1,5)),
---     ('_',(2,6)),('w',(2,7)),('w',(2,8))
---   ]
--- testBoard3_1 :: [(Char, (Int, Int))]
--- testBoard3_1 =
---   [
---     ('b',(0,0)),('b',(0,1)),('b',(0,2)),
---     ('b',(1,3)),('_',(1,4)),('_',(1,5)),
---     ('b',(2,6)),('_',(2,7)),('_',(2,8))
---   ]
+--Test to verify that all stones that should be captured have been identified
+-- and returned
+testCapturedStones :: Test
+testCapturedStones = "testCapturedStones" ~:
+  TestList
+    [
+      capturedStones tBSize PW emptyBoardTest ~?= [],
+      capturedStones tBSize PB emptyBoardTest ~?= [],
+      capturedStones tBSize PW testBoard1     ~?= [0,1,3],
+      capturedStones tBSize PW testBoard2     ~?= [4,7],
+      capturedStones tBSize PB testBoard2     ~?= [0,1,2,3,5,6,8],
+      capturedStones tBSize PB testBoard3     ~?= [],
+      capturedStones tBSize PB testBoard3_1   ~?= [],
+      capturedStones tBSize PB testBoard4     ~?= [],
+      capturedStones tBSize PW testBoard4     ~?= [],
+      capturedStones tBSize PB testBoard7     ~?= [],
+      capturedStones tBSize PW testBoard7     ~?= [0,8],
+      capturedStones tBSize PB testBoard8     ~?= [4],
+      capturedStones tBSize PB testBoard9     ~?= [],
+      capturedStones tBSize PW testBoard9     ~?= [0,3],
+      capturedStones tBSize PB testBoard10    ~?= [],
+      capturedStones tBSize PW testBoard10    ~?= [5,8],
+      capturedStones tBSize PB testBoard11    ~?= [],
+      capturedStones tBSize PW testBoard11    ~?= [0,5,8]
+    ]
 
 
-  
--- src/GoTests.hs:350
--- expected: []
---  but got: [0]
--- testBoard3 :: [(Char, (Int, Int))]
--- testBoard3 =
---   [
---     ('b',(0,0)),('b',(0,1)),('b',(0,2)),
---     ('b',(1,3)),('_',(1,4)),('_',(1,5)),
---     ('b',(2,6)),('_',(2,7)),('_',(2,8))
---   ]
+-- All the test boards used in tests above
+testBoard1 :: [(Char, (Int, Int))]
+testBoard1 =
+  [
+    ('w',(0,0)),('w',(0,1)),('b',(0,2)),
+    ('w',(1,3)),('b',(1,4)),('_',(1,5)),
+    ('b',(2,6)),('_',(2,7)),('_',(2,8))
+  ]
 
--- src/GoTests.hs:351
--- expected: []
---  but got: [0,1,3,6]
--- testBoard3_1 :: [(Char, (Int, Int))]
--- testBoard3_1 =
---   [
---     ('b',(0,0)),('b',(0,1)),('b',(0,2)),
---     ('b',(1,3)),('b',(1,4)),('_',(1,5)),
---     ('b',(2,6)),('b',(2,7)),('_',(2,8))
---   ]
+testBoard2 :: [(Char, (Int, Int))]
+testBoard2 =
+  [
+    ('b',(0,0)),('b',(0,1)),('b',(0,2)),
+    ('b',(1,3)),('w',(1,4)),('b',(1,5)),
+    ('b',(2,6)),('w',(2,7)),('b',(2,8))
+  ]
 
--- src/GoTests.hs:353
--- expected: []
---  but got: [0]
--- testBoard4 :: [(Char, (Int, Int))]
--- testBoard4 =
---   [
---     ('b',(0,0)),('b',(0,1)),('b',(0,2)),
---     ('b',(1,3)),('_',(1,4)),('_',(1,5)),
---     ('_',(2,6)),('w',(2,7)),('w',(2,8))
---   ]
+testBoard3 :: [(Char, (Int, Int))]
+testBoard3 =
+  [
+    ('b',(0,0)),('b',(0,1)),('b',(0,2)),
+    ('b',(1,3)),('_',(1,4)),('_',(1,5)),
+    ('b',(2,6)),('_',(2,7)),('_',(2,8))
+  ]
 
--- src/GoTests.hs:355
--- expected: []
---  but got: [8]
--- testBoard4 :: [(Char, (Int, Int))]
--- testBoard4 =
---   [
---     ('b',(0,0)),('b',(0,1)),('b',(0,2)),
---     ('b',(1,3)),('_',(1,4)),('_',(1,5)),
---     ('_',(2,6)),('w',(2,7)),('w',(2,8))
---   ]
+testBoard3_1 :: [(Char, (Int, Int))]
+testBoard3_1 =
+  [
+    ('b',(0,0)),('b',(0,1)),('b',(0,2)),
+    ('b',(1,3)),('b',(1,4)),('_',(1,5)),
+    ('b',(2,6)),('b',(2,7)),('_',(2,8))
+  ]
+
+testBoard4 :: [(Char, (Int, Int))]
+testBoard4 =
+  [
+    ('b',(0,0)),('b',(0,1)),('b',(0,2)),
+    ('b',(1,3)),('_',(1,4)),('_',(1,5)),
+    ('_',(2,6)),('w',(2,7)),('w',(2,8))
+  ]
+
+testBoard5 :: [(Char, (Int, Int))]
+testBoard5 =
+  [
+    ('w',(0,0)),('b',(0,1)),('_',(0,2)),
+    ('b',(1,3)),('b',(1,4)),('_',(1,5)),
+    ('_',(2,6)),('_',(2,7)),('w',(2,8))
+  ]
+
+testBoard6 :: [(Char, (Int, Int))]
+testBoard6 =
+  [
+    ('_',(0,0)),('b',(0,1)),('_',(0,2)),
+    ('w',(1,3)),('_',(1,4)),('b',(1,5)),
+    ('_',(2,6)),('w',(2,7)),('_',(2,8))
+  ]
+
+testBoard7 :: [(Char, (Int, Int))]
+testBoard7 =
+  [
+    ('w',(0,0)),('b',(0,1)),('_',(0,2)),
+    ('b',(1,3)),('_',(1,4)),('b',(1,5)),
+    ('_',(2,6)),('b',(2,7)),('w',(2,8))
+  ]
+
+testBoard8 :: [(Char, (Int, Int))]
+testBoard8 =
+  [
+    ('_',(0,0)),('w',(0,1)),('_',(0,2)),
+    ('w',(1,3)),('b',(1,4)),('w',(1,5)),
+    ('_',(2,6)),('w',(2,7)),('_',(2,8))
+  ]
+
+testBoard9 :: [(Char, (Int, Int))]
+testBoard9 =
+  [
+    ('w',(0,0)),('b',(0,1)),('_',(0,2)),
+    ('w',(1,3)),('b',(1,4)),('_',(1,5)),
+    ('b',(2,6)),('_',(2,7)),('_',(2,8))
+  ]
+
+testBoard10 :: [(Char, (Int, Int))]
+testBoard10 =
+  [
+    ('_',(0,0)),('_',(0,1)),('b',(0,2)),
+    ('_',(1,3)),('b',(1,4)),('w',(1,5)),
+    ('_',(2,6)),('b',(2,7)),('w',(2,8))
+  ]
+
+testBoard11 :: [(Char, (Int, Int))]
+testBoard11 =
+  [
+    ('w',(0,0)),('b',(0,1)),('b',(0,2)),
+    ('b',(1,3)),('b',(1,4)),('w',(1,5)),
+    ('_',(2,6)),('b',(2,7)),('w',(2,8))
+  ]
+
+-- An empty board used to verify certain situations in tests
+emptyBoardTest :: [(Char, (Int, Int))]
+emptyBoardTest =
+  [
+    ('_',(0,0)),('_',(0,1)),('_',(0,2)),
+    ('_',(1,3)),('_',(1,4)),('_',(1,5)),
+    ('_',(2,6)),('_',(2,7)),('_',(2,8))
+  ]
