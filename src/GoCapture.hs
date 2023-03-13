@@ -6,18 +6,18 @@ import GoConsts
 import Data.List ( union, nub, sort )
 
 
--- This is the start of the capture process. It will check single stones, units
--- and do this for both black and white stones. Everyone gets looked at and
--- assessed.
-theCaptureCode :: Int -> Board -> [Int]
-theCaptureCode bdSz board = undefined
-
-
 -- Returns a list of all stones - both singles and units - to be removed
 -- from the board and added to the score of the player who captured.
 -- The PlayerID is the player NOT CURRENTLY TAKING THEIR TURN
 capturedStones :: Int -> PlayerID -> Board -> [Int]
-capturedStones bdSz oppositePlayer game = undefined
+capturedStones bdSz pID' board =
+  do
+    let units = identifyUnits bdSz board
+    let cdSingles = cappedSingles bdSz units pID' board board
+    let cdUnits = cappedUnits bdSz units pID' board board
+    -- let cUnits = nub (cappedUnits bdSz uLibs pID' board board)
+    -- cSingles ++ cUnits
+    cdSingles ++ cdUnits
 
 
 -- Analyzes a board for any single stones that might be captured.
@@ -31,31 +31,33 @@ cappedSingles bdSz units pID (b:bs) ref
   | sPID && libCheck  = pos : cappedSingles bdSz units pID bs ref
   | otherwise         = cappedSingles bdSz units pID bs ref
   where
-    pos = getPos b
-    inUnits = any (pos `elem`) units
-    sPID = getPID b == pStone pID
-    libCheck = lostLiberties bdSz ref pos
+    pos       = getPos b
+    inUnits   = any (pos `elem`) units
+    sPID      = getPID b == pStone pID
+    libCheck  = lostLiberties bdSz ref pos
 
 
--- //TODO - returns the single stone if itself has lost its liberties
--- and it shouldn't. How best to check if adj positions are same pID?
--- If it's inUnits but fails libCheck?
 -- Identifies capped units for the current board. Capped units means every
 -- single stone in the unit has lost all its liberties
 cappedUnits :: Int -> [[Int]] -> PlayerID -> Board -> Board -> [Int]
-cappedUnits _ _ _ [] _  = []
 cappedUnits _ [] _ _ _  = []
-cappedUnits bdSz units pID [x] ref = []
-cappedUnits bdSz units pID (b:bs:bss) ref = undefined
-  -- | sPID && inUnits && libCheck = pos : cappedUnits bdSz units pID bs ref
-  -- | otherwise                   = cappedUnits bdSz units pID bs ref
-  -- where
-  --   pos = getPos b
-  --   inUnits = any (pos `elem`) units
-  --   sPID = getPID b == pStone pID
-  --   libCheck = lostLiberties bdSz ref pos
+cappedUnits bdSz (u:us) pID board ref =
+  cappedUnits' bdSz u pID board ref ++ cappedUnits bdSz us pID board ref
 
-
+cappedUnits' :: Int-> [Int] -> PlayerID -> Board -> Board -> [Int]
+cappedUnits' _ [] _ _ _  = []
+cappedUnits' _ _ _ [] _  = []
+cappedUnits' bdSz (u':us') pID (b:bs) ref
+  | not uPID    = []
+  | not sPID    = cappedUnits' bdSz (u':us') pID bs ref
+  | allLiberties && sPID = u':us'
+  | otherwise = cappedUnits' bdSz (u':us') pID bs ref
+  where
+    thisPID = pStone pID
+    cPos = getPos b
+    uPID = isSamePID bdSz thisPID ref u'
+    sPID = isSamePID bdSz thisPID ref cPos
+    allLiberties = and [r | z <- u':us', let r = lostLiberties bdSz ref z]
 
 -- check the current position on the board to see if is to be considered
 -- captured. If all bools are true (all liberties are lost) then return True, 
@@ -102,20 +104,6 @@ occupiedWest :: Int -> Board -> Int -> (Int, Int) -> Bool
 occupiedWest bdSz board pos' (s, _) | pos' < s                    = True
                                     | isOccupied bdSz board pos'  = True
                                     | otherwise                   = False
-
-
--- Identify the specific player passed ins liberties for their unit provided.
--- The PlayerID provided should be the opposite player
-idUnitLiberties :: Int -> [Int] -> PlayerID -> Board -> [Int]
-idUnitLiberties _ _ _ [] = []
-idUnitLiberties bdSz unit pID (b:bs)
-  | overlap && notPID  = loc : idUnitLiberties bdSz unit pID bs
-  | otherwise                   = idUnitLiberties bdSz unit pID bs
-  where
-    loc  = getPos b
-    notPID = pStone pID /= getPID b
-    overlap = any (`elem` unit) cardinals
-    cardinals = [north loc bdSz, south loc bdSz, east loc, west loc]
 
 
 -- Units in Go are all stones connected to one another as long as they are
