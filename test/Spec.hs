@@ -1,15 +1,16 @@
 import GoTests
-import Test.HUnit
+import Test.HUnit ( Test(TestList), runTestTT )
 
 main :: IO ()
 main = do
-  _ <- runTestTT $ TestList [ testIDUnitLiberties ]
+  _ <- runTestTT $ TestList [ testCapturedStones ]
   -- _ <- runTestTT $ TestList 
-        -- [ 
-          -- testCurrentPlayerStats, testBoardState, testStatsState,
-          -- testEmptyBoard, testCurrentRow, testPreviousRow, testNextRow,
-          -- testGetNext, testGetPosition, testRowLimit, testPosCalc,
-          -- testLegalMove, testUpdatePlayerPass, testGetPassCount,  
-          -- testRowStates, testIdentifyUnits, testCappedSingles
-        -- ]
+  --       [ 
+  --         testCurrentPlayerStats, testBoardState, testStatsState,
+  --         testEmptyBoard, testCurrentRow, testPreviousRow, testNextRow,
+  --         testGetNext, testGetPosition, testRowLimit, testPosCalc,
+  --         testLegalMove, testUpdatePlayerPass, testGetPassCount,  
+  --         testRowStates, testIdentifyUnits, testCappedSingles,
+  --         testCapturedStones
+  --       ]
   return ()
