@@ -48,7 +48,7 @@ haskellGo currentGame pID =
       -- uncurry (printf "\n\n\n(%d,%d)\n\n\n") move
       let captured = capturedStones bdSz (turnToggle pID') board
       let newStats = updateStats pID' stats' captured
-      let newBd = makeBoard bdSz pID' board (0, posCalc move bdSz)
+      let newBd = makeBoard bdSz pID' board (posCalc move bdSz) captured
       let currentGame' = updateGame newStats newBd
       haskellGo currentGame' pID'
   where
@@ -102,12 +102,14 @@ displayScore stats =
 
 
 {-- /*TODO
-  [ ] Player stats -- Length of captured stones increments current players score
-  [ ] Ignore/Remove captured stones from the board.
+  [ ] Must update the board with new move first, check the board for captures,
+      then update the stats/board/etc blah blah
   [ ] Write a big test to check all this.
 
   
   *** COMPLETED TASKS ***
+  [x] Ignore/Remove captured stones from the board.
+  [x] Player stats -- Length of captured stones increments current players score
   [x] Check unit liberties and single stone liberties
     [x] Unit liberties allow a function to run and see if all those liberties
         are captured. A list of stones that are apart of a unit and then
