@@ -3,7 +3,6 @@ module GoWork where
 import GoTypesData
 import GoConsts
 import System.Process ( system )
-import System.Exit ( exitSuccess )
 import System.IO ( hFlush )
 import qualified GHC.IO.Exception
 import GHC.IO.Handle.FD ( stdout )
@@ -35,12 +34,6 @@ pStone :: PlayerID -> Char
 pStone PB = stone Black
 pStone PW = stone White
 
-
--- Return the PlayerID stats passed in.
-thisPlayersStats :: PlayerID -> [PlayerStats] -> PlayerStats
-thisPlayersStats pID pStats = case filter (\(pid, _) -> pid == pID) pStats of
-                            [] -> error "No Player Stats Available"
-                            (x:_) -> x
 
 
 -- Get the current PlayerStats from the GameState
@@ -96,12 +89,6 @@ previousRow bdSz i = (i `div` bdSz)-1
 nextRow :: Int ->  Int -> Int
 nextRow bdSz i = (i `div` bdSz)+1
 
--- Get the next position in the list
--- //TODO is this actually used? Also found in tests file
--- getNext :: Int -> Board -> Position
--- getNext _ [] = ('d',(-1,-1))
--- getNext pos (b:bs)  | (pos+1) /= getPos b = getNext pos bs
---                     | otherwise = b
 
 -- Access the current position from the position passed in.
 getPos :: Position -> Int
@@ -123,18 +110,37 @@ rowLimit bdSz row = (row*bdSz, row*bdSz+(bdSz-1))
 updateGame :: [PlayerStats] -> Board -> GameState
 updateGame s b = (s, b)
 
+-- Return the PlayerID stats passed in.
+thisPlayersStats :: PlayerID -> [PlayerStats] -> PlayerStats
+thisPlayersStats _ [p] = p
+thisPlayersStats _ [] = error "No Stats Found"
+thisPlayersStats pID (p:ps)
+  | pID == fst p = p
+  | otherwise = thisPlayersStats pID ps
 
 -- Performs pattern matching to ensure we update the correct players pass stat
+-- Resets current players pass counter if the move wasn't identified as a
+-- pass.
 updatePlayerPass :: PlayerID -> (Int, Int) -> [PlayerStats] -> [PlayerStats]
 updatePlayerPass _ _ []         = []
 updatePlayerPass pID mv (p:ps)
-  | mv /= pass                  = p:ps
-  | pID /= fst p && mv == pass  = p:updatePlayerPass pID mv ps
-  | otherwise                   = updatePlayerPass' p:ps
+  | pID /= fst p                = p:updatePlayerPass pID mv ps
+  | pID == fst p && mv /= pass  = resetPlayerPass pID p:ps
+  | otherwise                   = updatePlayerPass' pID p:ps
 
 -- Creates new PlayerStats for the correct player incrementing their pass
-updatePlayerPass' :: PlayerStats -> PlayerStats
-updatePlayerPass' p = (fst p, (fst (snd p), snd (snd p)+1))
+updatePlayerPass' :: PlayerID -> PlayerStats -> PlayerStats
+updatePlayerPass' pID p = (pID, (score, passC+1))
+  where
+    score = fst $ snd p
+    passC = snd $ snd p
+
+-- Reset the passed in PlayerID's pass count
+resetPlayerPass :: PlayerID -> PlayerStats -> PlayerStats
+resetPlayerPass pID p = (pID, (score, 0))
+  where
+    score = fst $ snd p
+
 
 -- Updates player stats for current pID if they captured stones
 updateStats :: PlayerID -> [PlayerStats] -> [Int] -> [PlayerStats]
@@ -142,12 +148,28 @@ updateStats _ pStats []     = pStats
 updateStats _ [] _          = []
 updateStats pID (p:ps) caps
   | pID /= fst p  = p:updateStats pID ps caps
-  | otherwise     = updateStats' lenCaps p:ps
+  | otherwise     = updateStats' lenCaps pID p:ps
   where
     lenCaps = length caps
 
-updateStats' :: Int -> PlayerStats -> PlayerStats
-updateStats' i p = (fst p, (fst (snd p)+i, snd (snd p)))
+updateStats' :: Int -> PlayerID -> PlayerStats -> PlayerStats
+updateStats' i pID p = (pID, (score+i, passC))
+  where
+    score = fst $ snd p
+    passC = snd $ snd p
+
+-- Returns the provided PlayerID current score
+getPlayerScore :: PlayerID -> [PlayerStats] -> Int
+getPlayerScore pID stats = fst $ snd pStats
+  where
+    pStats = thisPlayersStats pID stats
+
+-- Returns the provided PlayerID pass count
+getPassCount :: PlayerID -> [PlayerStats] -> Int
+getPassCount pID stats = snd $ snd pStats
+  where
+    pStats = thisPlayersStats pID stats
+
 
 -- Quickly get the position in the Board[Position] list being changed
 -- based on the x,y coordinates the user entered (-1 because of list indexing)
@@ -196,19 +218,6 @@ isOccupied bdSz (b:bs) pos
   | otherwise                               = False
 
 
--- Returns the provided PlayerID current score
-getPlayerScore :: PlayerID -> [PlayerStats] -> Int
-getPlayerScore pID stats = fst $ snd pStats
-  where
-    pStats = thisPlayersStats pID stats
-
--- Returns the provided PlayerID pass count
-getPassCount :: PlayerID -> [PlayerStats] -> Int
-getPassCount pID stats = snd $ snd pStats
-  where
-    pStats = thisPlayersStats pID stats
-
-
 -- Obtain user input coordinates in a x y format to be used to place a stone
 -- down on the board.
 getCoordinates :: IO (Int, Int)
@@ -217,7 +226,7 @@ getCoordinates =
     hFlush stdout
     coords <- getLine
     if contains "pass" $ map toLower coords then return (-99,-99)
-    else if contains "quit" $ map toLower coords then exitSuccess
+    else if contains "quit" $ map toLower coords then return (-100,-100)
     else if contains "-" coords then return (-1, -1)
     else do
       -- Higher order! Found a place!
@@ -234,4 +243,4 @@ rowStates _ []          = []
 rowStates (s,e) (b:bs)
   | getPos b < s        = rowStates (s,e) bs
   | s <= e              = " " ++ fst b : rowStates (s+1,e) bs
-  | otherwise           =  []
+  | otherwise           = []
