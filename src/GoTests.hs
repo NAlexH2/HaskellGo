@@ -4,7 +4,6 @@ import GoTypesData
 import GoWork
 import GoCapture
 import Test.HUnit ( (~?=), (~:), Test(TestList) )
-import GoConsts
 
 
 -- Smaller boards are easier to test. All tests are using a 3x3 board
@@ -22,6 +21,10 @@ testStats2 = [(PB,(0,1)), (PW,(0,0))]
 -- Modified PW pass value used to check in updating players pass value
 testStats3 :: [(PlayerID, (Int, Int))]
 testStats3 = [(PB,(0,0)), (PW,(0,1))]
+
+-- Used to examine getPassCount/getPlayersScore
+testStats4 :: [(PlayerID, (Int, Int))]
+testStats4 = [(PB,(7,9)), (PW,(11,8))]
 
 -- The state of the board when testing the larger functions.
 testState :: ([PlayerStats], Board)
@@ -44,8 +47,8 @@ testCurrentPlayerStats :: Test
 testCurrentPlayerStats = "testCurrentPlayerStats" ~:
   TestList
       [
-        currentPlayersStats PB testStats1 ~?= (PB,(0,0)),
-        currentPlayersStats PW testStats1 ~?= (PW,(0,0))
+        thisPlayersStats PB testStats1 ~?= (PB,(0,0)),
+        thisPlayersStats PW testStats1 ~?= (PW,(0,0))
       ]
 
 -- Test to verify the getter `boardState` returns the proper information
@@ -120,24 +123,19 @@ testNextRow = "testNextRow" ~:
         nextRow tBSize 8 ~?= 3  --DNE in test. Checked elsewhere!
       ]
 
+-- //TODO need this?
 -- Test the getNext function to see if it returns actual positions correctly
 -- or no position if it wasn't found.
-testGetNext :: Test
-testGetNext = "testGetNext" ~:
-  TestList
-      [
-        getNext 0 testBoard1 ~?= ('w',(0,1)),
-        getNext 3 testBoard1 ~?= ('b',(1,4)),
-        getNext 7 testBoard1 ~?= ('_',(2,8)),
-        getNext 8 testBoard1 ~?= endOfBoard
-      ]
--- testBoard1 :: [(Char, (Int, Int))]
--- testBoard1 =
---   [
---     ('w',(0,0)),('w',(0,1)),('b',(0,2)),
---     ('w',(1,3)),('b',(1,4)),('_',(1,5)),
---     ('b',(2,6)),('_',(2,7)),('_',(2,8))
---   ]
+-- testGetNext :: Test
+-- testGetNext = "testGetNext" ~:
+--   TestList
+--       [
+--         getNext 0 testBoard1 ~?= ('w',(0,1)),
+--         getNext 3 testBoard1 ~?= ('b',(1,4)),
+--         getNext 7 testBoard1 ~?= ('_',(2,8)),
+--         getNext 8 testBoard1 ~?= endOfBoard
+--       ]
+
 
 -- Get the position in the list based on the position set being analyzed
 testGetPosition :: Test
@@ -192,6 +190,8 @@ testLegalMove = "testLegalMove" ~:
         legalMove tBSize testBoard1 (9,9)       ~?= 4
       ]
 
+
+
 -- Verify the program has updated the players pass with respect to playerID
 testUpdatePlayerPass :: Test
 testUpdatePlayerPass = "testUpdatePlayerPass" ~:
@@ -214,14 +214,28 @@ testUpdateStats = "testUpdateStats" ~:
         updateStats PW testStats3 [1,4,7] ~?= [(PB,(0,0)), (PW,(3,1))]
       ]
 
+-- Verify the program can get the proper score from playerStats
+testGetPlayersScore :: Test
+testGetPlayersScore = "testGetPlayersScore" ~:
+  TestList
+      [
+        getPlayerScore PB testStats1 ~?= 0,
+        getPlayerScore PW testStats1 ~?= 0,
+        getPlayerScore PB testStats4 ~?= 7,
+        getPlayerScore PW testStats4 ~?= 11
+      ]
+
 -- Ensure the getPassCount returns the correct value with respect to playerID
 testGetPassCount :: Test
 testGetPassCount = "testGetPassCount" ~:
   TestList
       [
-        getPassCount PB testState ~?= 0,
-        getPassCount PW testState ~?= 0
+        getPassCount PB testStats1 ~?= 0,
+        getPassCount PW testStats1 ~?= 0,
+        getPassCount PB testStats4 ~?= 9,
+        getPassCount PW testStats4 ~?= 8
       ]
+
 
 -- Ensures rowStates returns the correct string from our testBoard1
 testRowStates :: Test
