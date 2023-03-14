@@ -44,11 +44,11 @@ haskellGo currentGame pID =
     else do
       -- //TODO see if player passed 2 times, end game if so.
       let stats' = updatePlayerPass pID' move stats
-      -- //HACK - Remove these in final version
-      -- uncurry (printf "\n\n\n(%d,%d)\n\n\n") move
+      -- //TODO check pass count here
+      let board' = makeBoard bdSz pID' board (posCalc move bdSz) []
       let captured = capturedStones bdSz (turnToggle pID') board
       let newStats = updateStats pID' stats' captured
-      let newBd = makeBoard bdSz pID' board (posCalc move bdSz) captured
+      let newBd = makeBoard bdSz pID' board' (posCalc move bdSz) captured
       let currentGame' = updateGame newStats newBd
       haskellGo currentGame' pID'
   where
@@ -90,24 +90,31 @@ displayEachRow bdSz row board =
     else printf "\n"
 
 
--- //TODO - Comment
+-- Print the current pass count and score for each player in the game.
 displayScore :: [PlayerStats] -> IO ()
 displayScore stats =
   do
-    printf "------------------------\n"
-    printf "Score -- b: %d -- w: %d\n\n" p1 p2
+    printf "---------------------------------\n"
+    printf "      Score -- b: %d -- w: %d\n\n" sB sW
+    printf "Pass Counts -- b: %d -- w: %d\n\n" pB pW
   where
-    p1 = 0 :: Int
-    p2 = 0 :: Int
+    sB = getPlayerScore PB stats
+    sW = getPlayerScore PW stats
+    pB = getPassCount PB stats
+    pW = getPassCount PW stats
 
 
 {-- /*TODO
-  [ ] Must update the board with new move first, check the board for captures,
-      then update the stats/board/etc blah blah
-  [ ] Write a big test to check all this.
+  [ ] Check pass counter and stop the game if either player has a count of
+      2.
+  [ ] Tabulate the score when the game ends either with pass = 2 or quit
+  [ ] Write a big test to check all this?
 
   
   *** COMPLETED TASKS ***
+  [x] Display stats (including pass count)
+  [x] Must update the board with new move first, check the board for captures,
+      then update the stats/board/etc blah blah
   [x] Ignore/Remove captured stones from the board.
   [x] Player stats -- Length of captured stones increments current players score
   [x] Check unit liberties and single stone liberties
