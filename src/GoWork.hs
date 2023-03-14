@@ -1,7 +1,14 @@
 module GoWork where
 
 import GoTypesData
-import GoConsts
+    ( PlayerStats,
+      Board,
+      PlayerID(..),
+      GameState,
+      stone,
+      Position,
+      Stones(Blank, Black, White) )
+import GoConsts ( boardSpaces, badInput, pass )
 import System.Process ( system )
 import System.IO ( hFlush )
 import qualified GHC.IO.Exception

@@ -5,9 +5,25 @@
 module HaskellGo where
 
 import GoWork
-import GoCapture
-import GoTypesData
-import GoConsts
+    ( rowLimit,
+      rowStates,
+      getPlayerScore,
+      updateGame,
+      updateStats,
+      posCalc,
+      makeBoard,
+      clearScreen,
+      legalMove,
+      getPassCount,
+      updatePlayerPass,
+      getCoordinates,
+      currentPlayer,
+      turnToggle,
+      statsState,
+      boardState )
+import GoCapture ( capturedStones )
+import GoTypesData ( PlayerStats, Board, PlayerID(..), GameState )
+import GoConsts ( boardSize, quit )
 import Text.Printf ( printf )
 import System.Exit (exitSuccess)
 
@@ -25,7 +41,7 @@ haskellGo currentGame pID =
 
     printf "Type 'quit' anytime to end the game or 'pass' to skip your turn.\n"
     printf "To make your move, simply type an x and y that is on the grid. "
-    printf "Like so:\n'x y: 9 9'\n\n"
+    printf "Like so:\n'x y: 1 1'\n\n"
     displayState bdSz stats board
     printf "It is player %s's turn...\n" (currentPlayer pID')
     putStr "x y: "

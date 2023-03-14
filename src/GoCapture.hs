@@ -1,8 +1,20 @@
 module GoCapture where
 
-import GoTypesData
+import GoTypesData ( Board, PlayerID )
 import GoWork
-import GoConsts
+    ( rowLimit,
+      isOccupied,
+      getPID,
+      getPos,
+      nextRow,
+      previousRow,
+      west,
+      east,
+      south,
+      north,
+      currentRow,
+      pStone )
+import GoConsts ( boardSpaces )
 import Data.List ( union, nub, sort )
 
 
@@ -62,12 +74,12 @@ cappedUnits' bdSz (u':us') pID (b:bs) ref
 lostLiberties :: Int -> Board -> Int -> Bool
 lostLiberties bdSz board pos = and bools
   where
-    n   = north pos bdSz
-    s   = south pos bdSz
-    e    = east pos
-    w    = west pos
-    nLimits = rowLimit bdSz (previousRow bdSz pos)
-    sLimits = rowLimit bdSz (nextRow bdSz pos)
+    n         = north pos bdSz
+    s         = south pos bdSz
+    e         = east pos
+    w         = west pos
+    nLimits   = rowLimit bdSz (previousRow bdSz pos)
+    sLimits   = rowLimit bdSz (nextRow bdSz pos)
     e_wLimits = rowLimit bdSz (currentRow bdSz pos)
     bools =
       [
