@@ -10,37 +10,32 @@ import Test.HUnit ( (~?=), (~:), Test(TestList) )
 tBSize :: Int
 tBSize = 3
 
+
 -- Empty stats used in the tests
+-- First int is score, 2nd is pass counter
 testStats1 :: [(PlayerID, (Int, Int))]
 testStats1 = [(PB,(0,0)), (PW,(0,0))]
+
 
 -- Modified PB pass value used to check in updating players pass value
 testStats2 :: [(PlayerID, (Int, Int))]
 testStats2 = [(PB,(0,1)), (PW,(0,0))]
 
+
 -- Modified PW pass value used to check in updating players pass value
 testStats3 :: [(PlayerID, (Int, Int))]
 testStats3 = [(PB,(0,0)), (PW,(0,1))]
+
 
 -- Used to examine getPassCount/getPlayersScore
 testStats4 :: [(PlayerID, (Int, Int))]
 testStats4 = [(PB,(7,9)), (PW,(11,8))]
 
+
 -- The state of the board when testing the larger functions.
 testState :: ([PlayerStats], Board)
 testState = (testStats1, testBoard1)
 
-{-- 
-//TODO Big test, the game "played" itself to ensure stones were captured and score
-was updated and the newBoard was produced.
- This cannot be completed yet due to the program still being a WIP.
---}
-
-
-
-{--
-All other tests, the first few of which are fairly simple.
---}
 
 -- Test that ensures that currentPlayerStats properly returns expected values
 testCurrentPlayerStats :: Test
@@ -51,33 +46,22 @@ testCurrentPlayerStats = "testCurrentPlayerStats" ~:
         thisPlayersStats PW testStats1 ~?= (PW,(0,0))
       ]
 
+
 -- Test to verify the getter `boardState` returns the proper information
 testBoardState :: Test
 testBoardState = "testBoardState" ~: boardState testState ~?= testBoard1
 
+
 -- Test to verify the getter for `statsState` returns the proper information
 testStatsState :: Test
 testStatsState = "testStatsState" ~: statsState testState ~?= testStats1
+
 
 -- Test to verify that emptyBoard (with our test size) returns and matches the
 -- prepared version above
 testEmptyBoard :: Test
 testEmptyBoard = "testEmptyBoard" ~: emptyBoard tBSize ~?= emptyBoardTest
 
-{-- To reference for the following tests.
-    If the position is 2, then the row should be 0.
-    Position = 8 row = 2, p = 3 r = 1
-    See tests below
-
-             index  0 1 2
-      players view  1 2 3
-                   _______  Positions avail from 0:
-              0 1 | _ _ _ |   0->2 
-              1 2 | _ _ _ |   3->5
-              2 3 | _ _ _ |   6->8
-  See the bottom of this file for what the test___' is and justification for
-  using it here.
---}
 
 -- Verify currentRow performs the correct arithmetic for the position passed in 
 testCurrentRow :: Test
@@ -91,6 +75,7 @@ testCurrentRow = "testCurrentRow" ~:
         currentRow tBSize 6 ~?= 2,
         currentRow tBSize 8 ~?= 2
       ]
+
 
 -- Using position on the board again, get the previous row by subtracting
 -- what would be the current row by 1
@@ -108,6 +93,7 @@ testPreviousRow = "testPreviousRow" ~:
         previousRow tBSize 8 ~?= 1
       ]
 
+
 -- Similar to above but adding 1 instead of subtracting.
 -- In this case though, 3 is not a valid row but the game error checks for this
 -- elsewhere!!
@@ -119,22 +105,9 @@ testNextRow = "testNextRow" ~:
         nextRow tBSize 2 ~?= 1,
         nextRow tBSize 3 ~?= 2,
         nextRow tBSize 5 ~?= 2,
-        nextRow tBSize 6 ~?= 3, --DNE in test. Checked elsewhere!
-        nextRow tBSize 8 ~?= 3  --DNE in test. Checked elsewhere!
+        nextRow tBSize 6 ~?= 3,
+        nextRow tBSize 8 ~?= 3 
       ]
-
--- //TODO need this?
--- Test the getNext function to see if it returns actual positions correctly
--- or no position if it wasn't found.
--- testGetNext :: Test
--- testGetNext = "testGetNext" ~:
---   TestList
---       [
---         getNext 0 testBoard1 ~?= ('w',(0,1)),
---         getNext 3 testBoard1 ~?= ('b',(1,4)),
---         getNext 7 testBoard1 ~?= ('_',(2,8)),
---         getNext 8 testBoard1 ~?= endOfBoard
---       ]
 
 
 -- Get the position in the list based on the position set being analyzed
@@ -153,6 +126,7 @@ testGetPosition = "testGetPosition" ~:
         getPos ('_', (2, 8)) ~?= 8
       ]
 
+
 -- Get the bounds of the current row in our 3x3 grid
 testRowLimit :: Test
 testRowLimit = "testRowLimit" ~:
@@ -162,6 +136,7 @@ testRowLimit = "testRowLimit" ~:
         rowLimit tBSize 1 ~?= (3,5),
         rowLimit tBSize 2 ~?= (6,8)
       ]
+
 
 -- Check to ensure the formula for posCalc is operating correctly for various
 -- board sizes and positions. User is required to enter in x,y values > 0.
@@ -178,6 +153,7 @@ testPosCalc = "testPosCalc" ~:
       posCalc (2,1) 2 ~?= 1
     ]
 
+
 -- Check if the move the player made is legal or not using testBoard1
 testLegalMove :: Test
 testLegalMove = "testLegalMove" ~:
@@ -191,7 +167,6 @@ testLegalMove = "testLegalMove" ~:
       ]
 
 
-
 -- Verify the program has updated the players pass with respect to playerID
 testUpdatePlayerPass :: Test
 testUpdatePlayerPass = "testUpdatePlayerPass" ~:
@@ -201,6 +176,7 @@ testUpdatePlayerPass = "testUpdatePlayerPass" ~:
             updatePlayerPass PW (-99,-99) testStats1 ~?= testStats3,
             updatePlayerPass PW (-99,-99) [] ~?= []
           ]
+
 
 -- Test to see if player stats is properly updating with identified captured
 -- stones
@@ -214,6 +190,7 @@ testUpdateStats = "testUpdateStats" ~:
         updateStats PW testStats3 [1,4,7] ~?= [(PB,(0,0)), (PW,(3,1))]
       ]
 
+
 -- Verify the program can get the proper score from playerStats
 testGetPlayersScore :: Test
 testGetPlayersScore = "testGetPlayersScore" ~:
@@ -224,6 +201,7 @@ testGetPlayersScore = "testGetPlayersScore" ~:
         getPlayerScore PB testStats4 ~?= 7,
         getPlayerScore PW testStats4 ~?= 11
       ]
+
 
 -- Ensure the getPassCount returns the correct value with respect to playerID
 testGetPassCount :: Test
@@ -247,12 +225,6 @@ testRowStates = "testRowStates" ~:
         rowStates (rowLimit tBSize 2) testBoard1 ~?= " b _ _"
       ]
 
-      --        index  0 1 2
-      -- players view  1 2 3
-      --              _______  Positions avail from 0:
-      --         0 1 | w w b |   0->2
-      --         1 2 | w b _ |   3->5
-      --         2 3 | b _ _ |   6->8
 
 -- Test to see if the identify units works properly. This is only for units,
 -- and does not work for single stones. Examining single stones is easily done
@@ -268,6 +240,7 @@ testIdentifyUnits = "testIdentifyUnits" ~:
         identifyUnits tBSize testBoard5 ~?= [[1,3,4]],
         identifyUnits tBSize testBoard6 ~?= [[]]
       ]
+
 
 -- Test to check the board for any stones that are solo and have been captured
 testCappedSingles :: Test
@@ -285,6 +258,7 @@ testCappedSingles = "testCappedSingles" ~:
     units6 = identifyUnits tBSize testBoard6
     units7 = identifyUnits tBSize testBoard7
     units8 = identifyUnits tBSize testBoard8
+
 
 -- Test to check if the units can properly identified
 -- as captured or not.
@@ -341,6 +315,7 @@ testCapturedStones = "testCapturedStones" ~:
       capturedStones tBSize PW testBoard11    ~?= [0,5,8]
     ]
 
+
 -- //TODO - WIP
 -- testMakeBoard :: Test
 -- testMakeBoard = "testMakeBoard" ~:
@@ -377,7 +352,32 @@ testCapturedStones = "testCapturedStones" ~:
 --       caps7PB   = capturedStones tBSize PB testBoard7
 --       caps7PW   = capturedStones tBSize PW testBoard7
 
+
+
+
+{-- 
+    What the testBoards all look like to a human.
+    If the position is 2, then the row should be 0.
+    Position = 8 row = 2, p = 3 r = 1
+    See tests below
+
+             index  0 1 2
+      players view  1 2 3
+                   _______  Positions avail from 0:
+              0 1 | _ _ _ |   0->2 
+              1 2 | _ _ _ |   3->5
+              2 3 | _ _ _ |   6->8
+--}
+
 -- All the test boards used in tests above
+testBoard0 :: [(Char, (Int, Int))]
+testBoard0 =
+  [
+    ('w',(0,0)),('b',(0,1)),('_',(0,2)),
+    ('b',(1,3)),('_',(1,4)),('_',(1,5)),
+    ('_',(2,6)),('_',(2,7)),('_',(2,8))
+  ]
+
 testBoard1 :: [(Char, (Int, Int))]
 testBoard1 =
   [
