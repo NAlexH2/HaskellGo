@@ -46,11 +46,7 @@ Depending on what machine you are on, the easiest and fastest way to get started
 to run this is by typing one of the following...
 > ## Windows PowerShell (Non-admin)
 ```PowerShell
-Set-ExecutionPolicy Bypass -Scope Process -Force;[System.Net.ServicePointManager]
-::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; 
-try { Invoke-Command -ScriptBlock ([ScriptBlock]::Create((Invoke-WebRequest 
-https://www.haskell.org/ghcup/sh/bootstrap-haskell.ps1 -UseBasicParsing))) 
--ArgumentList $true } catch { Write-Error $_ }
+Set-ExecutionPolicy Bypass -Scope Process -Force;[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; try { Invoke-Command -ScriptBlock ([ScriptBlock]::Create((Invoke-WebRequest https://www.haskell.org/ghcup/sh/bootstrap-haskell.ps1 -UseBasicParsing))) -ArgumentList $true } catch { Write-Error $_ }
 ```
 > ## Linux, macOS, FreeBSD or WSL2 (Non-root user)
 ```Bash
