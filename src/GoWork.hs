@@ -25,7 +25,7 @@ turnToggle PW = PB
 
 -- Identify the current player
 currentPlayer :: PlayerID -> String
-currentPlayer p | p == PB = "BLACK"
+currentPlayer p | p == PB   = "BLACK"
                 | otherwise = "WHITE"
 
 
@@ -33,7 +33,6 @@ currentPlayer p | p == PB = "BLACK"
 pStone :: PlayerID -> Char
 pStone PB = stone Black
 pStone PW = stone White
-
 
 
 -- Get the current PlayerStats from the GameState
@@ -110,13 +109,15 @@ rowLimit bdSz row = (row*bdSz, row*bdSz+(bdSz-1))
 updateGame :: [PlayerStats] -> Board -> GameState
 updateGame s b = (s, b)
 
+
 -- Return the PlayerID stats passed in.
 thisPlayersStats :: PlayerID -> [PlayerStats] -> PlayerStats
-thisPlayersStats _ [p] = p
-thisPlayersStats _ [] = error "No Stats Found"
+thisPlayersStats _ [p]      = p
+thisPlayersStats _ []       = error "No Stats Found"
 thisPlayersStats pID (p:ps)
-  | pID == fst p = p
-  | otherwise = thisPlayersStats pID ps
+  | pID == fst p            = p
+  | otherwise               = thisPlayersStats pID ps
+
 
 -- Performs pattern matching to ensure we update the correct players pass stat
 -- Resets current players pass counter if the move wasn't identified as a
@@ -128,12 +129,14 @@ updatePlayerPass pID mv (p:ps)
   | pID == fst p && mv /= pass  = resetPlayerPass pID p:ps
   | otherwise                   = updatePlayerPass' pID p:ps
 
+
 -- Creates new PlayerStats for the correct player incrementing their pass
 updatePlayerPass' :: PlayerID -> PlayerStats -> PlayerStats
 updatePlayerPass' pID p = (pID, (score, passC+1))
   where
     score = fst $ snd p
     passC = snd $ snd p
+
 
 -- Reset the passed in PlayerID's pass count
 resetPlayerPass :: PlayerID -> PlayerStats -> PlayerStats
@@ -147,8 +150,8 @@ updateStats :: PlayerID -> [PlayerStats] -> [Int] -> [PlayerStats]
 updateStats _ pStats []     = pStats
 updateStats _ [] _          = []
 updateStats pID (p:ps) caps
-  | pID /= fst p  = p:updateStats pID ps caps
-  | otherwise     = updateStats' lenCaps pID p:ps
+  | pID /= fst p            = p:updateStats pID ps caps
+  | otherwise               = updateStats' lenCaps pID p:ps
   where
     lenCaps = length caps
 
@@ -158,11 +161,13 @@ updateStats' i pID p = (pID, (score+i, passC))
     score = fst $ snd p
     passC = snd $ snd p
 
+
 -- Returns the provided PlayerID current score
 getPlayerScore :: PlayerID -> [PlayerStats] -> Int
 getPlayerScore pID stats = fst $ snd pStats
   where
     pStats = thisPlayersStats pID stats
+
 
 -- Returns the provided PlayerID pass count
 getPassCount :: PlayerID -> [PlayerStats] -> Int
@@ -180,7 +185,7 @@ posCalc (x,y) bdSz = (x-1)+((y-1)*bdSz)
 -- Make a move and new board based off of players coordinates
 -- i is current pos
 makeBoard :: Int -> PlayerID -> Board -> Int -> [Int] -> Board
-makeBoard _ _ [] _ _      = []
+makeBoard _ _ [] _ _  = []
 makeBoard bdSz pID (b:bs) pos caps
   | cPos `elem` caps  = posUpdate bdSz '_' cPos:makeBoard bdSz pID bs pos caps
   | sPos              = posUpdate bdSz iPID pos:makeBoard bdSz pID bs pos caps
@@ -189,6 +194,7 @@ makeBoard bdSz pID (b:bs) pos caps
     cPos = getPos b
     sPos = cPos == pos
     iPID = pStone pID
+
 
 -- Return a new position with the passed in PlayerID
 posUpdate :: Int -> Char -> Int -> Position
@@ -225,13 +231,21 @@ getCoordinates =
   do
     hFlush stdout
     coords <- getLine
-    if contains "pass" $ map toLower coords then return (-99,-99)
-    else if contains "quit" $ map toLower coords then return (-100,-100)
-    else if contains "-" coords then return (-1, -1)
+    if contains "pass" $ map toLower coords 
+      then return (-99,-99)
+
+    else if contains "quit" $ map toLower coords 
+      then return (-100,-100)
+
+    else if contains "-" coords 
+      then return (-1, -1)
+
     else do
       -- Higher order! Found a place!
       let coords'   = filter (not . null) $ map (filter isDigit) (words coords)
-      if length coords' /= 2 then return (-1, -1)
+      if length coords' /= 2 
+        then return (-1, -1)
+        
       else do
         let (x, y)  = (\b -> (read (head b) ::Int, read (last b) ::Int)) coords'
         return (x,y)

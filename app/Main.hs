@@ -10,6 +10,8 @@ import qualified GoTypesData as GTD
 
 main :: IO ()
 main = 
-  do
+  -- newGame is a GameState starting with empty stats for each player and
+  -- an empty board with the designated board size in GoConsts.hs at the top
+  do 
     let newGame = GW.newState GTD.emptyStats (GW.emptyBoard GC.boardSize)
-    HG.haskellGo newGame GC.notFirstPlayer
+    HG.haskellGo newGame GC.notFirstPlayer -- Start the game!

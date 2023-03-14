@@ -14,7 +14,8 @@ import System.Exit (exitSuccess)
 
 -- Where it all starts. Recursively runs the game using a do statement while
 -- performing the work and logic before and after the player enters their
--- move.
+-- move. This takes a GameState and PlayerID: GameState is a tuple of the board
+-- and players score, and PlayerID is either PB or PW.
 haskellGo :: GameState -> PlayerID -> IO ()
 haskellGo currentGame pID =
   do
@@ -68,8 +69,8 @@ endGame bdSz stats board =
 -- Displays the winner based on current score
 winner :: [PlayerStats] -> IO()
 winner stats 
-  | sB > sW = printf "\n!!!!BLACK WINS!!!!\n\n"
-  | sB < sW = printf "\n!!!!WHITE WINS!!!!\n\n"
+  | sB > sW   = printf "\n!!!!BLACK WINS!!!!\n\n"
+  | sB < sW   = printf "\n!!!!WHITE WINS!!!!\n\n"
   | otherwise = printf "\n***THE GAME IS TIED***\n\n"
   where
     sB = getPlayerScore PB stats

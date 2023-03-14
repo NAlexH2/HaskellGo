@@ -12,11 +12,9 @@ import Data.List ( union, nub, sort )
 capturedStones :: Int -> PlayerID -> Board -> [Int]
 capturedStones bdSz pID' board =
   do
-    let units = identifyUnits bdSz board
+    let units     = identifyUnits bdSz board
     let cdSingles = cappedSingles bdSz units pID' board board
-    let cdUnits = cappedUnits bdSz units pID' board board
-    -- let cUnits = nub (cappedUnits bdSz uLibs pID' board board)
-    -- cSingles ++ cUnits
+    let cdUnits   = cappedUnits bdSz units pID' board board
     cdSingles ++ cdUnits
 
 
@@ -25,11 +23,11 @@ capturedStones bdSz pID' board =
 -- one to traverse and compare and one to reference when examined in other
 -- functions against the current position.
 cappedSingles :: Int -> [[Int]] -> PlayerID -> Board -> Board -> [Int]
-cappedSingles _ _ _ [] _            = []
+cappedSingles _ _ _ [] _  = []
 cappedSingles bdSz units pID (b:bs) ref
-  | inUnits           = cappedSingles bdSz units pID bs ref
-  | sPID && libCheck  = pos : cappedSingles bdSz units pID bs ref
-  | otherwise         = cappedSingles bdSz units pID bs ref
+  | inUnits               = cappedSingles bdSz units pID bs ref
+  | sPID && libCheck      = pos : cappedSingles bdSz units pID bs ref
+  | otherwise             = cappedSingles bdSz units pID bs ref
   where
     pos       = getPos b
     inUnits   = any (pos `elem`) units
@@ -96,14 +94,14 @@ occupiedSouth bdSz board pos' (_, e)  | e > boardSpaces bdSz        = True
                                       | otherwise                   = False
 
 occupiedEast :: Int -> Board -> Int -> (Int, Int) -> Bool
-occupiedEast bdSz board pos' (_, e) | pos' > e                    = True
-                                    | isOccupied bdSz board pos'  = True
-                                    | otherwise                   = False
+occupiedEast bdSz board pos' (_, e)   | pos' > e                    = True
+                                      | isOccupied bdSz board pos'  = True
+                                      | otherwise                   = False
 
 occupiedWest :: Int -> Board -> Int -> (Int, Int) -> Bool
-occupiedWest bdSz board pos' (s, _) | pos' < s                    = True
-                                    | isOccupied bdSz board pos'  = True
-                                    | otherwise                   = False
+occupiedWest bdSz board pos' (s, _)   | pos' < s                    = True
+                                      | isOccupied bdSz board pos'  = True
+                                      | otherwise                   = False
 
 
 -- Units in Go are all stones connected to one another as long as they are
@@ -114,30 +112,42 @@ identifyUnits :: Int -> Board -> [[Int]]
 identifyUnits _ []        = []
 identifyUnits bdSz (b:bs) =
   do
-    if curPID == '_' then [] : identifyUnits bdSz bs
+    -- Ignore blank spaces on board
+    if curPID == '_' then [] : identifyUnits bdSz bs 
     else do
-      let findFriends =
+      let findFriends = -- Find all the adjacent positions w/ same pID
             [
               (isSamePID bdSz curPID bs n, n),
               (isSamePID bdSz curPID bs s, s),
               (isSamePID bdSz curPID bs e, e),
               (isSamePID bdSz curPID bs w, w)
             ]
+
+      -- Pull out only the values from the list where the first of the tuple was
+      -- True
       let friends   = filter fst findFriends
-      let friends'  =
+      let friends'  = 
             if friends /= [] then
               (curPos : map snd friends) : identifyUnits bdSz bs
             else [] : identifyUnits bdSz bs
-      let units = uFilter friends'
-      uFilter (uCombine [] units)
+      -- For friends', if the list is not [], take the current position and
+      -- build a list of all the friends we found with it. Then recursively
+      -- call this function and add more friends to the list of lists this is
+      -- building.
+            
+      let units = uFilter friends' -- Get rid of duplicates, empties, and sort
+      uFilter (uCombine [] units) -- Combine all friends by identifying
+      -- overlapping values in the lists. Then, once again, clean up and sort.
+      -- [[0,1,3],[2,3],[3,5,6],[4,7],[5,8]] 
+      -- [[0,1,2,3,5,6,8],[4,7]]
 
-      where
-        curPos  = getPos b
-        curPID  = fst b
-        n   = north curPos bdSz
-        s   = south curPos bdSz
-        e    = east curPos
-        w    = west curPos
+  where
+    curPos  = getPos b
+    curPID  = fst b
+    n   = north curPos bdSz
+    s   = south curPos bdSz
+    e    = east curPos
+    w    = west curPos
 
 
 -- The list of units identified regrouped into full lists of units based
@@ -159,8 +169,8 @@ uCombine (m:ms) (x:xs)  | null m            = m' : uCombine (m':ms) xs
 -- merged list to see if it belongs anywhere. If it does, union it with that
 -- list. Otherwise, recurse until either it does or it exists on its own.
 uCombine' :: [[Int]] -> [Int] -> [[Int]]
-uCombine' [] [] = []
-uCombine' [] x  = [x]
+uCombine' [] []     = []
+uCombine' [] x      = [x]
 uCombine' (m:ms) x  | any (`elem` m) x  = m `union` x : ms
                     | otherwise         = m : uCombine' ms x
 

@@ -144,13 +144,13 @@ testPosCalc :: Test
 testPosCalc = "testPosCalc" ~:
   TestList
     [
-      posCalc (9,9) 9 ~?= 80,
-      posCalc (2,3) 3 ~?= 7,
-      posCalc (3,3) 3 ~?= 8,
-      posCalc (1,1) 3 ~?= 0,
-      posCalc (4,8) 19 ~?= 136,
-      posCalc (1,1) 2 ~?= 0,
-      posCalc (2,1) 2 ~?= 1
+      posCalc (9,9) 9   ~?= 80,
+      posCalc (2,3) 3   ~?= 7,
+      posCalc (3,3) 3   ~?= 8,
+      posCalc (1,1) 3   ~?= 0,
+      posCalc (4,8) 19  ~?= 136,
+      posCalc (1,1) 2   ~?= 0,
+      posCalc (2,1) 2   ~?= 1
     ]
 
 
@@ -172,9 +172,9 @@ testUpdatePlayerPass :: Test
 testUpdatePlayerPass = "testUpdatePlayerPass" ~:
   TestList
           [
-            updatePlayerPass PB (-99,-99) testStats1 ~?= testStats2,
-            updatePlayerPass PW (-99,-99) testStats1 ~?= testStats3,
-            updatePlayerPass PW (-99,-99) [] ~?= []
+            updatePlayerPass PB (-99,-99) testStats1  ~?= testStats2,
+            updatePlayerPass PW (-99,-99) testStats1  ~?= testStats3,
+            updatePlayerPass PW (-99,-99) []          ~?= []
           ]
 
 
@@ -266,16 +266,16 @@ testCappedUnits :: Test
 testCappedUnits = "testCappedUnits" ~:
   TestList
       [
-        cappedUnits tBSize units1 PW testBoard1 testBoard1    ~?= [0,1,3],
-        cappedUnits tBSize units2 PW testBoard2 testBoard2    ~?= [4,7],
-        cappedUnits tBSize units3 PB testBoard3 testBoard3    ~?= [],
-        cappedUnits tBSize units3_1 PB testBoard3_1 testBoard3_1    ~?= [],
-        cappedUnits tBSize units4 PB testBoard4 testBoard4    ~?= [],
-        cappedUnits tBSize units4 PW testBoard4 testBoard4    ~?= [],
-        cappedUnits tBSize units7 PW testBoard7 testBoard7    ~?= [],
-        cappedUnits tBSize units8 PB testBoard8 testBoard8    ~?= [],
-        cappedUnits tBSize units9 PW testBoard9 testBoard9    ~?= [0,3],
-        cappedUnits tBSize units10 PW testBoard10 testBoard10 ~?= [5,8]
+        cappedUnits tBSize units1 PW testBoard1 testBoard1        ~?= [0,1,3],
+        cappedUnits tBSize units2 PW testBoard2 testBoard2        ~?= [4,7],
+        cappedUnits tBSize units3 PB testBoard3 testBoard3        ~?= [],
+        cappedUnits tBSize units3_1 PB testBoard3_1 testBoard3_1  ~?= [],
+        cappedUnits tBSize units4 PB testBoard4 testBoard4        ~?= [],
+        cappedUnits tBSize units4 PW testBoard4 testBoard4        ~?= [],
+        cappedUnits tBSize units7 PW testBoard7 testBoard7        ~?= [],
+        cappedUnits tBSize units8 PB testBoard8 testBoard8        ~?= [],
+        cappedUnits tBSize units9 PW testBoard9 testBoard9        ~?= [0,3],
+        cappedUnits tBSize units10 PW testBoard10 testBoard10     ~?= [5,8]
       ]
       where
         units1 = identifyUnits tBSize testBoard1
@@ -370,11 +370,12 @@ testCapturedStones = "testCapturedStones" ~:
 --}
 
 -- All the test boards used in tests above
-testBoard0 :: [(Char, (Int, Int))]
-testBoard0 =
+-- An empty board used to verify certain situations in tests
+emptyBoardTest :: [(Char, (Int, Int))]
+emptyBoardTest =
   [
-    ('w',(0,0)),('b',(0,1)),('_',(0,2)),
-    ('b',(1,3)),('_',(1,4)),('_',(1,5)),
+    ('_',(0,0)),('_',(0,1)),('_',(0,2)),
+    ('_',(1,3)),('_',(1,4)),('_',(1,5)),
     ('_',(2,6)),('_',(2,7)),('_',(2,8))
   ]
 
@@ -472,13 +473,4 @@ testBoard11 =
     ('w',(0,0)),('b',(0,1)),('b',(0,2)),
     ('b',(1,3)),('b',(1,4)),('w',(1,5)),
     ('_',(2,6)),('b',(2,7)),('w',(2,8))
-  ]
-
--- An empty board used to verify certain situations in tests
-emptyBoardTest :: [(Char, (Int, Int))]
-emptyBoardTest =
-  [
-    ('_',(0,0)),('_',(0,1)),('_',(0,2)),
-    ('_',(1,3)),('_',(1,4)),('_',(1,5)),
-    ('_',(2,6)),('_',(2,7)),('_',(2,8))
   ]

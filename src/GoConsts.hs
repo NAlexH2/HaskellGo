@@ -18,6 +18,7 @@ boardSpaces bdSz = (bdSz*bdSz)-1
 notFirstPlayer :: PlayerID
 notFirstPlayer = PW
 
+
 -- Used to quickly identify if "pass" was entered
 pass :: (Int, Int)
 pass = (-99, -99)
@@ -27,9 +28,11 @@ pass = (-99, -99)
 quit :: (Int, Int)
 quit = (-100, -100)
 
+
 -- Used to quickly check if there was an error on user input for getCoordinates
 badInput :: (Int, Int)
 badInput = (-1,-1)
+
 
 -- Reached end of the list in getNext
 endOfBoard :: (Char, (Int, Int))
