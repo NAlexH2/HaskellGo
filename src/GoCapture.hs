@@ -11,11 +11,10 @@ import Data.List ( union, nub, sort )
 -- The PlayerID is the player NOT CURRENTLY TAKING THEIR TURN
 capturedStones :: Int -> PlayerID -> Board -> [Int]
 capturedStones bdSz pID' board =
-  do
     let units     = identifyUnits bdSz board
-    let cdSingles = cappedSingles bdSz units pID' board board
-    let cdUnits   = cappedUnits bdSz units pID' board board
-    cdSingles ++ cdUnits
+        cdSingles = cappedSingles bdSz units pID' board board
+        cdUnits   = cappedUnits bdSz units pID' board board
+    in cdSingles ++ cdUnits
 
 
 -- Analyzes a board for any single stones that might be captured.
