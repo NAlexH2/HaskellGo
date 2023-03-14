@@ -124,10 +124,9 @@ identifyUnits bdSz (b:bs) =
               (isSamePID bdSz curPID bs w, w)
             ]
       let friends   = filter fst findFriends
-      -- let friends'  = map snd friends : identifyUnits' bs
       let friends'  =
             if friends /= [] then
-            (curPos : map snd friends) : identifyUnits bdSz bs
+              (curPos : map snd friends) : identifyUnits bdSz bs
             else [] : identifyUnits bdSz bs
       let units = uFilter friends'
       uFilter (uCombine [] units)
