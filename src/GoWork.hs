@@ -37,8 +37,8 @@ pStone PW = stone White
 
 
 -- Return the PlayerID stats passed in.
-currentPlayersStats :: PlayerID -> [PlayerStats] -> PlayerStats
-currentPlayersStats pID pStats = case filter (\(pid, _) -> pid == pID) pStats of
+thisPlayersStats :: PlayerID -> [PlayerStats] -> PlayerStats
+thisPlayersStats pID pStats = case filter (\(pid, _) -> pid == pID) pStats of
                             [] -> error "No Player Stats Available"
                             (x:_) -> x
 
@@ -97,11 +97,11 @@ nextRow :: Int ->  Int -> Int
 nextRow bdSz i = (i `div` bdSz)+1
 
 -- Get the next position in the list
--- //TODO is this actually used?
-getNext :: Int -> Board -> Position
-getNext _ [] = ('d',(-1,-1))
-getNext pos (b:bs)  | (pos+1) /= getPos b = getNext pos bs
-                    | otherwise = b
+-- //TODO is this actually used? Also found in tests file
+-- getNext :: Int -> Board -> Position
+-- getNext _ [] = ('d',(-1,-1))
+-- getNext pos (b:bs)  | (pos+1) /= getPos b = getNext pos bs
+--                     | otherwise = b
 
 -- Access the current position from the position passed in.
 getPos :: Position -> Int
@@ -112,10 +112,6 @@ getPos pos = snd (snd pos)
 getPID :: Position -> Char
 getPID = fst
 
--- //TODO - Do you need this?
--- safeHead :: [Int] -> Maybe Int
--- safeHead [] = Nothing
--- safeHead (x:_) = Just x
 
 -- Calculates start and end positions of the row passed in
 -- with the boardSize too
@@ -132,6 +128,7 @@ updateGame s b = (s, b)
 updatePlayerPass :: PlayerID -> (Int, Int) -> [PlayerStats] -> [PlayerStats]
 updatePlayerPass _ _ []         = []
 updatePlayerPass pID mv (p:ps)
+  | mv /= pass                  = p:ps
   | pID /= fst p && mv == pass  = p:updatePlayerPass pID mv ps
   | otherwise                   = updatePlayerPass' p:ps
 
@@ -198,20 +195,18 @@ isOccupied bdSz (b:bs) pos
   | not $ null b && null bs                 = False
   | otherwise                               = False
 
-  -- //TODO what if 151 looked to check opposite pID and not blank?
-  -- if they are false and true respectively, return true, else false
 
-
-
-
-
-
-
--- Returns current players pass count
-getPassCount :: PlayerID -> GameState -> Int
-getPassCount pID game = snd $ snd pStats
+-- Returns the provided PlayerID current score
+getPlayerScore :: PlayerID -> [PlayerStats] -> Int
+getPlayerScore pID stats = fst $ snd pStats
   where
-    pStats = currentPlayersStats pID (statsState game)
+    pStats = thisPlayersStats pID stats
+
+-- Returns the provided PlayerID pass count
+getPassCount :: PlayerID -> [PlayerStats] -> Int
+getPassCount pID stats = snd $ snd pStats
+  where
+    pStats = thisPlayersStats pID stats
 
 
 -- Obtain user input coordinates in a x y format to be used to place a stone
