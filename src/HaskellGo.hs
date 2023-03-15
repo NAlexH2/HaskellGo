@@ -76,7 +76,7 @@ endGame :: Int -> [PlayerStats] -> Board -> IO()
 endGame bdSz stats board =
   do 
     _ <- clearScreen
-    printf "\n***The game is OVER!***\n"
+    printf "\n***The game is OVER!***\n\n"
     displayState bdSz stats board
     winner stats
     exitSuccess
@@ -105,7 +105,7 @@ errorBadMove e  | e == 2      = "Received invalid input from the user."
 displayState :: Int -> [PlayerStats] -> Board -> IO ()
 displayState bdSz stats board =
   do
-    displayTopRows
+    displayTopRows bdSz
     displayEachRow bdSz row board
     displayScore stats
       where
@@ -113,8 +113,11 @@ displayState bdSz stats board =
 
 
 -- Visualization of the board to the user for x y coordinates to be entered
-displayTopRows :: IO ()
-displayTopRows = printf "  x  1 2 3 4 5 6 7 8 9\ny   __________________"
+displayTopRows :: Int -> IO ()
+displayTopRows bdSz = printf "  x %s\ny   %s" nums line
+  where
+    nums = concat [" " ++ show n | n <- [1..bdSz]]
+    line = concat $ replicate (bdSz*2) "_"
 
 
 -- Displays most up to date state of the board as to be human readable.
@@ -132,9 +135,10 @@ displayEachRow bdSz row board =
 displayScore :: [PlayerStats] -> IO ()
 displayScore stats =
   do
-    printf "---------------------------------\n"
-    printf "     Score -- b: %d -- w: %d\n" sB sW
-    printf "Pass Count -- b: %d -- w: %d\n\n" pB pW
+    printf "-----------------------\n"
+    printf "Score | Pass Count\n"
+    printf "b:  %d | %d\n" sB pB
+    printf "w:  %d | %d\n\n" sW pW
   where
     sB = getPlayerScore PB stats
     sW = getPlayerScore PW stats
