@@ -95,7 +95,7 @@ lostLiberties bdSz board pos = and bools
 -- If it is occupied, that liberty is no longer available. This is important
 -- for determining captured stones.
 occupiedNorth :: Int -> Board -> Int -> (Int, Int) -> Bool
-occupiedNorth bdSz board pos' (s, _)  | s < boardSpaces bdSz        = True
+occupiedNorth bdSz board pos' (s, _)  | s < 0                       = True
                                       | isOccupied bdSz board pos'  = True
                                       | otherwise                   = False
 
