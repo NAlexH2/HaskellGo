@@ -5,7 +5,7 @@ import GoTypesData
 -- Define the size of the board here. Future would like to make it user choice
 -- where n x n square and n >= 9
 boardSize :: Int
-boardSize = 3
+boardSize = 9
 
 
 -- Return the boards maximum size from the value provided.
