@@ -81,7 +81,7 @@ lostLiberties bdSz board pos = and bools
     nLimits   = rowLimit bdSz (previousRow bdSz pos)
     sLimits   = rowLimit bdSz (nextRow bdSz pos)
     e_wLimits = rowLimit bdSz (currentRow bdSz pos)
-    bools =
+    bools     =
       [
         occupiedNorth bdSz board n nLimits,
         occupiedSouth bdSz board s sLimits,
