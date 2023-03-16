@@ -12,6 +12,7 @@ packaged with the following:
  - Haskell Language Server
  - Stack
  - Cabal
+<br></br>
 
 
 # [Rules of Go](https://en.wikipedia.org/wiki/Rules_of_Go)
@@ -39,6 +40,7 @@ information see
 **Komi** is the rule that enables a handicap. This wasn't something I had a
 strong desire to implement. Feel free to read 
 [this article about Komi](https://en.wikipedia.org/wiki/Komi_(Go)).
+<br></br>
 
 
 # Setup
@@ -60,6 +62,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
 3. Type `stack build` and let the project compile and download packages.
 4. Type `stack run main` to play! Carefully read the instructions once the game
    starts.
+<br></br>
 
 
 # Major Challenges and Their Solutions (And the Files You Can Find Them In)
@@ -76,6 +79,7 @@ all their liberties. From there, the code returned `True` or `False` for each
 stone - `True` if it lost all its liberties, `False` if any of its liberties
 were not occupied - if *any* were `False`, then the unit had not been captured,
 if all were `True` then the unit had been captured.
+<br></br>
 
 ## Identifying Units - CaptureGo.hs
 This was the 2nd most difficult task, weirdly enough. It had felt (at first) as
@@ -103,3 +107,35 @@ example comes from a real list I had generated while working on the problem with
 
 This then allowed me to start working on identifying which stones needed to be
 captured. Single stones were trivial in comparison.
+<br></br>
+
+# File Breakdown
+## Main.hs
+The launching off point for the game. Initializes all the data for the game from
+player stats to the creating an empty board. Executes `haskellGo` 
+in **HaskellGo.hs**.
+
+## GoConsts.hs
+This file utilizes a few unique functions and values that are crucial to the
+programs performance as the game is ran.
+
+## GoTypesData.hs
+Contains the data and types used in the game to manage various aspects and
+states that the board contains.
+
+## HaskellGo.hs
+Performs nearly all the IO (except for obtaining coordinates from the player)
+to display the board, score, and instructions to the user.
+
+## GoWork.hs
+Does all the logic heavy lifting to ensure that the board is properly updated
+and that the players score and pass counters are also updated. This does also
+perform the arithmetic used throughout the program to ensure that the logic
+continues to work properly.
+
+## GoCapture.hs
+This is where the capture magic happens. This code analyzes the board and
+determines which stones are considered captured for both individual stones and
+entire units (stones that are the same color and connected together). This then
+provides this list for the program to update all of the information for the
+board in regards to stones to be removed and how to update the board.
