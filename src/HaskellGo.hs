@@ -45,7 +45,7 @@ haskellGo currentGame pID =
     displayState bdSz stats board
     printf "It is player %s's turn...\n" (currentPlayer pID')
     putStr "x y: "
-    move <- getCoordinates
+    move <- getCoordinates bdSz
     let stats' = updatePlayerPass pID' move stats
 
     if (getPassCount pID' stats' >= 2) || move == quit 

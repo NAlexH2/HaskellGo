@@ -233,8 +233,8 @@ isOccupied bdSz (b:bs) pos
 
 -- Obtain user input coordinates in a x y format to be used to place a stone
 -- down on the board.
-getCoordinates :: IO (Int, Int)
-getCoordinates =
+getCoordinates :: Int -> IO (Int, Int)
+getCoordinates bdSz =
   do
     hFlush stdout
     coords <- getLine
@@ -244,7 +244,7 @@ getCoordinates =
     else if contains "quit" $ map toLower coords 
       then return (-100,-100)
 
-    else if contains "-" coords 
+    else if contains "-" coords
       then return (-1, -1)
 
     else do
@@ -255,7 +255,8 @@ getCoordinates =
         
       else do
         let (x, y)  = (\b -> (read (head b) ::Int, read (last b) ::Int)) coords'
-        return (x,y)
+        if x == 0 || y == 0 || x > bdSz || y > bdSz then return (-1,-1)
+        else return (x,y)
 
 
 -- Get the state of each position in a row as a string
