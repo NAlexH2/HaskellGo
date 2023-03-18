@@ -9,6 +9,7 @@ main = do
           testEmptyBoard, testCurrentRow, testPreviousRow, testNextRow,
           testGetPosition, testRowLimit, testPosCalc, testLegalMove, 
           testUpdatePlayerPass, testGetPassCount, testRowStates, 
-          testIdentifyUnits, testCappedSingles, testCapturedStones
+          testIdentifyUnits, testCappedSingles, testCapturedStones,
+          testMakeBoard
         ]
   return ()

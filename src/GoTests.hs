@@ -316,41 +316,90 @@ testCapturedStones = "testCapturedStones" ~:
     ]
 
 
--- //TODO - WIP
--- testMakeBoard :: Test
--- testMakeBoard = "testMakeBoard" ~:
---   TestList
---     [
---       makeBoard tBSize PB testBoard1 8 caps1PW ~?= 
---         [
---           ('_',(0,0)),('_',(0,1)),('b',(0,2)),
---           ('_',(1,3)),('b',(1,4)),('_',(1,5)),
---           ('b',(2,6)),('_',(2,7)),('b',(2,8))
---         ],
---         makeBoard tBSize PW testBoard1 8 caps1PB ~?= 
---         [
---           ('w',(0,0)),('w',(0,1)),('b',(0,2)),
---           ('w',(1,3)),('b',(1,4)),('_',(1,5)),
---           ('b',(2,6)),('_',(2,7)),('w',(2,8))
---         ],
---         makeBoard tBSize PB testBoard1 8 caps1PW ~?= 
---         [
---           ('_',(0,0)),('_',(0,1)),('b',(0,2)),
---           ('_',(1,3)),('b',(1,4)),('_',(1,5)),
---           ('b',(2,6)),('_',(2,7)),('b',(2,8))
---         ],
---     ]
---     where
---       caps1PB   = capturedStones tBSize PB testBoard1
---       caps1PW   = capturedStones tBSize PW testBoard1
---       caps2PB   = capturedStones tBSize PB testBoard2
---       caps2PW   = capturedStones tBSize PW testBoard2
---       caps3PB   = capturedStones tBSize PB testBoard3
---       caps3PW   = capturedStones tBSize PW testBoard3
---       caps3_1PB = capturedStones tBSize PB testBoard3_1
---       caps3_1PW = capturedStones tBSize PW testBoard3_1
---       caps7PB   = capturedStones tBSize PB testBoard7
---       caps7PW   = capturedStones tBSize PW testBoard7
+-- Tests the new board maker depending on captured stones and users newest
+-- placement.
+testMakeBoard :: Test
+testMakeBoard = "testMakeBoard" ~:
+  TestList
+    [
+      makeBoard tBSize PB testBoard1 8 caps1PW ~?= 
+        [
+          ('_',(0,0)),('_',(0,1)),('b',(0,2)),
+          ('_',(1,3)),('b',(1,4)),('_',(1,5)),
+          ('b',(2,6)),('_',(2,7)),('b',(2,8))
+        ],
+        makeBoard tBSize PW testBoard1 8 caps1PB ~?= 
+        [
+          ('w',(0,0)),('w',(0,1)),('b',(0,2)),
+          ('w',(1,3)),('b',(1,4)),('_',(1,5)),
+          ('b',(2,6)),('_',(2,7)),('w',(2,8))
+        ],
+        makeBoard tBSize PB testBoard1 8 caps1PW ~?= 
+        [
+          ('_',(0,0)),('_',(0,1)),('b',(0,2)),
+          ('_',(1,3)),('b',(1,4)),('_',(1,5)),
+          ('b',(2,6)),('_',(2,7)),('b',(2,8))
+        ],
+        makeBoard tBSize PB testBoard2 0 caps2PW ~?=
+        [
+          ('b',(0,0)),('b',(0,1)),('b',(0,2)),
+          ('b',(1,3)),('_',(1,4)),('b',(1,5)),
+          ('b',(2,6)),('_',(2,7)),('b',(2,8))
+        ],
+        makeBoard tBSize PW testBoard2 4 caps2PB ~?=
+        [
+          ('_',(0,0)),('_',(0,1)),('_',(0,2)),
+          ('_',(1,3)),('w',(1,4)),('_',(1,5)),
+          ('_',(2,6)),('w',(2,7)),('_',(2,8))
+        ],
+        makeBoard tBSize PB testBoard3 8 caps3PW ~?=
+        [
+          ('b',(0,0)),('b',(0,1)),('b',(0,2)),
+          ('b',(1,3)),('_',(1,4)),('_',(1,5)),
+          ('b',(2,6)),('_',(2,7)),('b',(2,8))
+        ],
+        makeBoard tBSize PW testBoard3 8 caps3PB ~?=
+        [
+          ('b',(0,0)),('b',(0,1)),('b',(0,2)),
+          ('b',(1,3)),('_',(1,4)),('_',(1,5)),
+          ('b',(2,6)),('_',(2,7)),('w',(2,8))
+        ],
+        makeBoard tBSize PB testBoard3_1 8 caps3_1PW ~?=
+        [
+          ('b',(0,0)),('b',(0,1)),('b',(0,2)),
+          ('b',(1,3)),('b',(1,4)),('_',(1,5)),
+          ('b',(2,6)),('b',(2,7)),('b',(2,8))
+        ],
+        makeBoard tBSize PW testBoard3_1 8 caps3_1PB ~?=
+        [
+          ('b',(0,0)),('b',(0,1)),('b',(0,2)),
+          ('b',(1,3)),('b',(1,4)),('_',(1,5)),
+          ('b',(2,6)),('b',(2,7)),('w',(2,8))          
+        ],
+        makeBoard tBSize PB testBoard7 4 caps7PW ~?=
+        [
+          ('_',(0,0)),('b',(0,1)),('_',(0,2)),
+          ('b',(1,3)),('b',(1,4)),('b',(1,5)),
+          ('_',(2,6)),('b',(2,7)),('_',(2,8))
+        ],
+        makeBoard tBSize PW testBoard7 4 caps7PB ~?=
+        [
+          ('w',(0,0)),('b',(0,1)),('_',(0,2)),
+          ('b',(1,3)),('w',(1,4)),('b',(1,5)),
+          ('_',(2,6)),('b',(2,7)),('w',(2,8))
+        ]
+    ]
+    where
+      caps1PW   = capturedStones tBSize PW testBoard1
+      caps1PB   = capturedStones tBSize PB testBoard1
+      caps2PW   = capturedStones tBSize PW testBoard2
+      caps2PB   = capturedStones tBSize PB testBoard2
+      caps3PW   = capturedStones tBSize PW testBoard3
+      caps3PB   = capturedStones tBSize PB testBoard3
+      caps3_1PW = capturedStones tBSize PW testBoard3_1
+      caps3_1PB = capturedStones tBSize PB testBoard3_1
+      caps7PW   = capturedStones tBSize PW testBoard7
+      caps7PB   = capturedStones tBSize PB testBoard7
 
 
 
